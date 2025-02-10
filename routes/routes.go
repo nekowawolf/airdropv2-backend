@@ -9,7 +9,7 @@ import (
 func SetupRoutes(app *fiber.App) {
 	api := app.Group("/airdrop")
 
-	api.Post("/login", controllers.InsertAdminHandler)
+	api.Post("/login", controllers.LoginAdminHandler)
 	
 	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
 	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
