@@ -8,11 +8,14 @@ import (
 
     "go.mongodb.org/mongo-driver/mongo"
     "go.mongodb.org/mongo-driver/mongo/options"
+    "github.com/joho/godotenv"
 )
 
 var Database *mongo.Database
 
 func init() {
+    _ = godotenv.Load()
+
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
