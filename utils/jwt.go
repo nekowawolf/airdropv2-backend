@@ -4,12 +4,19 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+func GetJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Println("Warning: JWT_SECRET is not set!")
+	}
+	return []byte(secret)
+}
 
 type JWTClaims struct {
 	AdminID string `json:"admin_id"`
@@ -26,16 +33,21 @@ func GenerateJWT(adminID string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString(GetJWTSecret())
 }
 
 func ValidateJWT(tokenString string) (string, error) {
+	log.Println("Validating Token:", tokenString) 
+
+	tokenString = strings.TrimSpace(strings.Replace(tokenString, "Bearer ", "", 1))
+	log.Println("Cleaned Token:", tokenString) 
+
 	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			log.Printf("Unexpected signing method: %v\n", token.Header["alg"])
 			return nil, errors.New("unexpected signing method")
 		}
-		return jwtSecret, nil
+		return GetJWTSecret(), nil
 	})
 
 	if err != nil {
@@ -44,8 +56,12 @@ func ValidateJWT(tokenString string) (string, error) {
 	}
 
 	claims, ok := token.Claims.(*JWTClaims)
-	if !ok || !token.Valid {
-		log.Println("Invalid token claims or token is not valid")
+	if !ok {
+		log.Println("Token claims could not be cast to JWTClaims")
+		return "", errors.New("invalid token claims")
+	}
+	if !token.Valid {
+		log.Println("Token is not valid")
 		return "", errors.New("invalid token")
 	}
 
