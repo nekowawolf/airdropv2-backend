@@ -39,7 +39,7 @@ func GenerateJWT(adminID string) (string, error) {
 func ValidateJWT(tokenString string) (string, error) {
 	log.Println("Validating Token:", tokenString) 
 
-	tokenString = strings.TrimSpace(strings.Replace(tokenString, "Bearer ", "", 1))
+	tokenString = strings.TrimSpace(strings.Replace(tokenString, "Bearer", "", 1))
 	log.Println("Cleaned Token:", tokenString) 
 
 	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
