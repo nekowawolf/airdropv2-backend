@@ -21,7 +21,7 @@ func AdminMiddleware() fiber.Handler {
 		}
 
 		splitToken := strings.SplitN(authHeader, " ", 2)
-		if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "Bearer" {
+		if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
 			log.Println("Invalid token format")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token format",
