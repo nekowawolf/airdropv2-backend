@@ -14,18 +14,17 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
 	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
 	api.Get("/allairdrop", controllers.GetAllAirdropHandler)
-	api.Get("/freeairdrop/:id", controllers.GetAirdropFreeByIDHandler)
-	api.Get("/paidairdrop/:id", controllers.GetAirdropPaidByIDHandler)
 	api.Get("/allairdrop/search/:name", controllers.GetAllAirdropByNameHandler)
 	api.Get("/freeairdrop/search/:name", controllers.GetAirdropFreeByNameHandler)
 	api.Get("/paidairdrop/search/:name", controllers.GetAirdropPaidByNameHandler)
 
 	api.Get("/cryptocommunity", controllers.GetAllCryptoCommunity)
-	api.Get("/cryptocommunity:id", controllers.GetCryptoCommunityByID)
 	api.Get("/cryptocommunity/search/:name", controllers.GetCryptoCommunityByName)
 	
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
+	protected.Get("/freeairdrop/:id", controllers.GetAirdropFreeByIDHandler)
+	protected.Get("/paidairdrop/:id", controllers.GetAirdropPaidByIDHandler)
 	protected.Post("/freeairdrop", controllers.InsertAirdropFreeHandler)
 	protected.Post("/paidairdrop", controllers.InsertAirdropPaidHandler)
 	protected.Put("/freeairdrop/:id", controllers.UpdateAirdropFreeByIDHandler)
@@ -39,6 +38,7 @@ func SetupRoutes(app *fiber.App) {
 	protected.Put("/notes/:id", controllers.UpdateNotesByID)
 	protected.Delete("/notes/:id", controllers.DeleteNotesByID)
 
+	protected.Get("/cryptocommunity:id", controllers.GetCryptoCommunityByID)
 	protected.Post("/cryptocommunity", controllers.InsertCryptoCommunity)
 	protected.Put("/cryptocommunity:id", controllers.UpdateCryptoCommunityByID)
 	protected.Delete("/cryptocommunity:id", controllers.DeleteCryptoCommunityByID)
