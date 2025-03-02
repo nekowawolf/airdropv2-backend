@@ -10,21 +10,21 @@ import (
 
 func AdminMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		authHeader := c.Get("token")
-		log.Println("token Header:", authHeader)
+		authHeader := c.Get("Authorization")
+		log.Println("Authorization Header:", authHeader)
 
 		if authHeader == "" {
-			log.Println("token header is missing")
+			log.Println("Authorization header is missing")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing token",
+				"error": "Missing Authorization header",
 			})
 		}
 
 		splitToken := strings.SplitN(authHeader, " ", 2)
 		if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
-			log.Println("Invalid token format")
+			log.Println("Invalid Authorization format")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid token format",
+				"error": "Invalid Authorization format. Use 'Bearer <token>'",
 			})
 		}
 
