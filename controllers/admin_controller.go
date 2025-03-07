@@ -57,7 +57,7 @@ func LoginAdminHandler(c *fiber.Ctx) error {
 }
 
 func GetAdminInfo(c *fiber.Ctx) error {
-	tokenString := c.Get("token")
+	tokenString := c.Get("Authorization")
 	if tokenString == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing token"})
 	}
