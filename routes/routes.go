@@ -21,6 +21,8 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/cryptocommunity", controllers.GetAllCryptoCommunity)
 	api.Get("/cryptocommunity/search/:name", controllers.GetCryptoCommunityByName)
 	
+	api.Get("/price", controllers.PriceHandler)
+
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
 	protected.Get("/freeairdrop/:id", controllers.GetAirdropFreeByIDHandler)
