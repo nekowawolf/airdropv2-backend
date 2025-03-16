@@ -24,7 +24,7 @@ func InsertOneDocAdmin(collection string, doc interface{}) (interface{}, error) 
 func InsertAdmin(username, password string) (interface{}, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("Error hashing password: %v", err)
+		return nil, fmt.Errorf("error hashing password: %v", err)
 	}
 
 	newAdmin := models.Admin{
@@ -35,7 +35,7 @@ func InsertAdmin(username, password string) (interface{}, error) {
 
 	insertedID, err := InsertOneDocAdmin("admin", newAdmin)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to insert admin: %v", err)
+		return nil, fmt.Errorf("failed to insert admin: %v", err)
 	}
 
 	fmt.Printf("Inserted new admin with ID: %v\n", insertedID)
@@ -48,16 +48,16 @@ func LoginAdmin(username, password string) (bool, error) {
 	var admin models.Admin
 	err := collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&admin)
 	if err == mongo.ErrNoDocuments {
-		return false, fmt.Errorf("Admin not found")
+		return false, fmt.Errorf("admin not found")
 	} else if err != nil {
-		return false, fmt.Errorf("Error finding admin: %v", err)
+		return false, fmt.Errorf("error finding admin: %v", err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password))
 	if err != nil {
-		return false, fmt.Errorf("Invalid password")
+		return false, fmt.Errorf("invalid password")
 	}
 
-	fmt.Println("Login successful")
+	fmt.Println("login successful")
 	return true, nil
 }
