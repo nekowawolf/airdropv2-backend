@@ -169,6 +169,12 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	if reqAirdrop.Status == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Status is required",
+		})
+	}
+
 	insertedID, err := module.InsertAirdropFree(
 		reqAirdrop.Name,
 		reqAirdrop.Task,
@@ -183,7 +189,6 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 		reqAirdrop.LinkClaim,
 		reqAirdrop.Price,
 		reqAirdrop.USDIncome,
-		
 	)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -212,6 +217,12 @@ func InsertAirdropPaidHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	if reqAirdrop.Status == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Status is required",
+		})
+	}
+
 	insertedID, err := module.InsertAirdropPaid(
 		reqAirdrop.Name,
 		reqAirdrop.Task,
@@ -226,7 +237,6 @@ func InsertAirdropPaidHandler(c *fiber.Ctx) error {
 		reqAirdrop.LinkClaim,
 		reqAirdrop.Price,
 		reqAirdrop.USDIncome,
-
 	)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
