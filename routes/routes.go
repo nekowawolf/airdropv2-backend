@@ -40,10 +40,10 @@ func SetupRoutes(app *fiber.App) {
 	protected.Put("/notes/:id", controllers.UpdateNotesByID)
 	protected.Delete("/notes/:id", controllers.DeleteNotesByID)
 
-	protected.Get("/cryptocommunity:id", controllers.GetCryptoCommunityByID)
+	protected.Get("/cryptocommunity/:id", controllers.GetCryptoCommunityByID)
 	protected.Post("/cryptocommunity", controllers.InsertCryptoCommunity)
-	protected.Put("/cryptocommunity:id", controllers.UpdateCryptoCommunityByID)
-	protected.Delete("/cryptocommunity:id", controllers.DeleteCryptoCommunityByID)
+	protected.Put("/cryptocommunity/:id", controllers.UpdateCryptoCommunityByID)
+	protected.Delete("/cryptocommunity/:id", controllers.DeleteCryptoCommunityByID)
 
 	protected.Get("/admin/info", controllers.GetAdminInfo)
 	protected.Post("/logout", controllers.LoginAdminHandler)
