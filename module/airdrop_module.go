@@ -78,6 +78,28 @@ func InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, m
 	return InsertOneDocAirdrop("airdrop_paid", paidAirdrop)
 }
 
+func GetAllAirdrop() ([]interface{}, error) {
+	var allAirdrops []interface{}
+
+	freeAirdrops, err := GetAllAirdropFree()
+	if err != nil {
+		return nil, err
+	}
+	for _, free := range freeAirdrops {
+		allAirdrops = append(allAirdrops, free)
+	}
+
+	paidAirdrops, err := GetAllAirdropPaid()
+	if err != nil {
+		return nil, err
+	}
+	for _, paid := range paidAirdrops {
+		allAirdrops = append(allAirdrops, paid)
+	}
+
+	return allAirdrops, nil
+}
+
 func GetAllAirdropFree() ([]models.AirdropFree, error) {
 	collection := config.Database.Collection("airdrop_free")
 	cursor, err := collection.Find(context.TODO(), bson.M{})
@@ -102,6 +124,20 @@ func GetAllAirdropPaid() ([]models.AirdropPaid, error) {
 		return nil, fmt.Errorf("GetAllAirdropPaid All: %v", err)
 	}
 	return airdrops, nil
+}
+
+func GetAllAirdropByID(id primitive.ObjectID) (interface{}, error) {
+    freeAirdrop, err := GetAirdropFreeByID(id)
+    if err == nil {
+        return freeAirdrop, nil
+    }
+    
+    paidAirdrop, err := GetAirdropPaidByID(id)
+    if err == nil {
+        return paidAirdrop, nil
+    }
+    
+    return nil, fmt.Errorf("GetAllAirdropByID: airdrop not found in both collections")
 }
 
 func GetAirdropFreeByID(id primitive.ObjectID) (models.AirdropFree, error) {
@@ -152,28 +188,6 @@ func GetAirdropPaidByName(name string) ([]models.AirdropPaid, error) {
 	return airdrops, nil
 }
 
-func GetAllAirdrop() ([]interface{}, error) {
-	var allAirdrops []interface{}
-
-	freeAirdrops, err := GetAllAirdropFree()
-	if err != nil {
-		return nil, err
-	}
-	for _, free := range freeAirdrops {
-		allAirdrops = append(allAirdrops, free)
-	}
-
-	paidAirdrops, err := GetAllAirdropPaid()
-	if err != nil {
-		return nil, err
-	}
-	for _, paid := range paidAirdrops {
-		allAirdrops = append(allAirdrops, paid)
-	}
-
-	return allAirdrops, nil
-}
-
 func GetAllAirdropByName(name string) ([]interface{}, error) {
 	var allAirdrops []interface{}
 
@@ -194,6 +208,20 @@ func GetAllAirdropByName(name string) ([]interface{}, error) {
 	}
 
 	return allAirdrops, nil
+}
+
+func UpdateAllAirdropByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim string, price float64, usdIncome int) error {
+    _, errFree := GetAirdropFreeByID(id)
+    if errFree == nil {
+        return UpdateAirdropFreeByID(id, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim, price, usdIncome)
+    }
+    
+    _, errPaid := GetAirdropPaidByID(id)
+    if errPaid == nil {
+        return UpdateAirdropPaidByID(id, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim, price, usdIncome)
+    }
+    
+    return fmt.Errorf("UpdateAllAirdropByID: airdrop not found in both collections")
 }
 
 func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim string, price float64, usdIncome int) error {
@@ -276,6 +304,20 @@ func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, statu
 	}
 
 	return nil
+}
+
+func DeleteAllAirdropByID(id primitive.ObjectID) error {
+    var errFree, errPaid error
+    
+    errFree = DeleteAirdropFreeByID(id)
+    if errFree != nil {
+        errPaid = DeleteAirdropPaidByID(id)
+        if errPaid != nil {
+            return fmt.Errorf("DeleteAllAirdropByID: airdrop not found in both collections. Free error: %v, Paid error: %v", errFree, errPaid)
+        }
+    }
+    
+    return nil
 }
 
 func DeleteAirdropFreeByID(id primitive.ObjectID) error {

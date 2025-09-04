@@ -29,8 +29,10 @@ func SetupRoutes(app *fiber.App) {
 	protected.Get("/paidairdrop/:id", controllers.GetAirdropPaidByIDHandler)
 	protected.Post("/freeairdrop", controllers.InsertAirdropFreeHandler)
 	protected.Post("/paidairdrop", controllers.InsertAirdropPaidHandler)
+	protected.Put("/allairdrop/:id", controllers.UpdateAllAirdropByIDHandler)
 	protected.Put("/freeairdrop/:id", controllers.UpdateAirdropFreeByIDHandler)
     protected.Put("/paidairdrop/:id", controllers.UpdateAirdropPaidByIDHandler)
+	protected.Delete("/allairdrop/:id", controllers.DeleteAllAirdropByIDHandler)
 	protected.Delete("/freeairdrop/:id", controllers.DeleteAirdropFreeByIDHandler)
     protected.Delete("/paidairdrop/:id", controllers.DeleteAirdropPaidByIDHandler)
 
