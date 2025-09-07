@@ -25,6 +25,7 @@ func SetupRoutes(app *fiber.App) {
 
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
+	protected.Get("/allairdrop/:id", controllers.GetAllAirdropByIDHandler)
 	protected.Get("/freeairdrop/:id", controllers.GetAirdropFreeByIDHandler)
 	protected.Get("/paidairdrop/:id", controllers.GetAirdropPaidByIDHandler)
 	protected.Post("/freeairdrop", controllers.InsertAirdropFreeHandler)
