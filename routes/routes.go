@@ -10,6 +10,8 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("/airdrop")
 
 	api.Post("/login", controllers.LoginAdminHandler)
+	api.Post("/refresh", controllers.RefreshTokenHandler)
+	api.Post("/logout", controllers.LogoutHandler)
 	
 	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
 	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
@@ -48,6 +50,4 @@ func SetupRoutes(app *fiber.App) {
 	protected.Put("/cryptocommunity/:id", controllers.UpdateCryptoCommunityByID)
 	protected.Delete("/cryptocommunity/:id", controllers.DeleteCryptoCommunityByID)
 
-	protected.Get("/admin/info", controllers.GetAdminInfo)
-	protected.Post("/logout", controllers.LoginAdminHandler)
 }

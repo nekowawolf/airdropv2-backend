@@ -28,10 +28,10 @@ func AdminMiddleware() fiber.Handler {
 			})
 		}
 
-		tokenString := strings.TrimSpace(splitToken[1]) 
-		log.Println("Extracted Token:", tokenString) 
+		tokenString := strings.TrimSpace(splitToken[1])
+		log.Println("Extracted Token:", tokenString)
 
-		adminID, err := utils.ValidateJWT(tokenString)
+		adminID, err := utils.ValidateJWT(tokenString, false)
 		if err != nil {
 			log.Println("Error validating token:", err)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

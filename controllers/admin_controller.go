@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"time"
 	"github.com/gofiber/fiber/v2"
 	"github.com/nekowawolf/airdropv2/module"
 	"github.com/nekowawolf/airdropv2/models"
@@ -37,40 +38,75 @@ func LoginAdminHandler(c *fiber.Ctx) error {
 	}
 
 	isAuthenticated, err := module.LoginAdmin(req.Username, req.Password)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	if !isAuthenticated {
+	if err != nil || !isAuthenticated {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid username or password"})
 	}
 
-	token, err := utils.GenerateJWT(req.Username)
+	accessToken, refreshToken, err := utils.GenerateJWT(req.Username)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate tokens"})
+	}
+
+	err = module.SaveRefreshToken(req.Username, refreshToken, time.Now().Add(7*24*time.Hour))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save refresh token"})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Login successful",
-		"token":   token,
+		"message":       "Login successful",
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"expires_in":    900,
 	})
 }
 
-func GetAdminInfo(c *fiber.Ctx) error {
-	tokenString := c.Get("Authorization")
-	if tokenString == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing token"})
+func RefreshTokenHandler(c *fiber.Ctx) error {
+	type Request struct {
+		RefreshToken string `json:"refresh_token"`
 	}
 
-	username, err := utils.ValidateJWT(tokenString)
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if req.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Refresh token is required"})
+	}
+
+	if !module.CheckRefreshToken(req.RefreshToken) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Refresh token not found or expired"})
+	}
+
+	newAccessToken, err := utils.RefreshAccessToken(req.RefreshToken)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid refresh token"})
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"username": username,
-		},
+		"access_token": newAccessToken,
+		"expires_in":   900,
 	})
+}
+
+func LogoutHandler(c *fiber.Ctx) error {
+	type Request struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	if req.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Refresh token is required"})
+	}
+
+	err := module.DeleteRefreshToken(req.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete refresh token"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Logged out successfully"})
 }
