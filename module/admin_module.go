@@ -82,9 +82,12 @@ func CheckRefreshToken(token string) bool {
 	if err != nil {
 		return false
 	}
+
 	if time.Now().After(rt.ExpiresAt) {
+		_, _ = collection.DeleteOne(context.TODO(), bson.M{"token": token})
 		return false
 	}
+
 	return true
 }
 
