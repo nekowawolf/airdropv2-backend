@@ -3,14 +3,13 @@ package module
 import (
 	"context"
 	"errors"
-	"time"
 	"fmt"
+	"time"
 
 	"github.com/nekowawolf/airdropv2/config"
 	"github.com/nekowawolf/airdropv2/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
 )
 
 func InsertOneDocAirdrop(collection string, doc interface{}) (interface{}, error) {
@@ -26,7 +25,7 @@ func InsertAirdropFree(name, task, link, level, status, backed, funds, supply, m
 	var endedAt *time.Time
 	if status == "ended" {
 		now := time.Now()
-		endedAt = &now 
+		endedAt = &now
 	}
 
 	freeAirdrop := models.AirdropFree{
@@ -38,14 +37,14 @@ func InsertAirdropFree(name, task, link, level, status, backed, funds, supply, m
 		Status:    status,
 		Backed:    backed,
 		Funds:     funds,
-		Supply:    supply,       
+		Supply:    supply,
 		MarketCap: marketCap,
 		Vesting:   vesting,
 		LinkClaim: linkClaim,
 		Price:     price,
 		USDIncome: usdIncome,
 		CreatedAt: time.Now(),
-		EndedAt:   endedAt,        
+		EndedAt:   endedAt,
 	}
 	return InsertOneDocAirdrop("airdrop_free", freeAirdrop)
 }
@@ -54,7 +53,7 @@ func InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, m
 	var endedAt *time.Time
 	if status == "ended" {
 		now := time.Now()
-		endedAt = &now 
+		endedAt = &now
 	}
 
 	paidAirdrop := models.AirdropPaid{
@@ -66,14 +65,14 @@ func InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, m
 		Status:    status,
 		Backed:    backed,
 		Funds:     funds,
-		Supply:    supply,         
+		Supply:    supply,
 		MarketCap: marketCap,
 		Vesting:   vesting,
 		LinkClaim: linkClaim,
 		Price:     price,
 		USDIncome: usdIncome,
 		CreatedAt: time.Now(),
-		EndedAt:   endedAt,        
+		EndedAt:   endedAt,
 	}
 	return InsertOneDocAirdrop("airdrop_paid", paidAirdrop)
 }
@@ -127,17 +126,17 @@ func GetAllAirdropPaid() ([]models.AirdropPaid, error) {
 }
 
 func GetAllAirdropByID(id primitive.ObjectID) (interface{}, error) {
-    freeAirdrop, err := GetAirdropFreeByID(id)
-    if err == nil {
-        return freeAirdrop, nil
-    }
-    
-    paidAirdrop, err := GetAirdropPaidByID(id)
-    if err == nil {
-        return paidAirdrop, nil
-    }
-    
-    return nil, fmt.Errorf("GetAllAirdropByID: airdrop not found in both collections")
+	freeAirdrop, err := GetAirdropFreeByID(id)
+	if err == nil {
+		return freeAirdrop, nil
+	}
+
+	paidAirdrop, err := GetAirdropPaidByID(id)
+	if err == nil {
+		return paidAirdrop, nil
+	}
+
+	return nil, fmt.Errorf("GetAllAirdropByID: airdrop not found in both collections")
 }
 
 func GetAirdropFreeByID(id primitive.ObjectID) (models.AirdropFree, error) {
@@ -211,22 +210,27 @@ func GetAllAirdropByName(name string) ([]interface{}, error) {
 }
 
 func UpdateAllAirdropByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim string, price float64, usdIncome int) error {
-    _, errFree := GetAirdropFreeByID(id)
-    if errFree == nil {
-        return UpdateAirdropFreeByID(id, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim, price, usdIncome)
-    }
-    
-    _, errPaid := GetAirdropPaidByID(id)
-    if errPaid == nil {
-        return UpdateAirdropPaidByID(id, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim, price, usdIncome)
-    }
-    
-    return fmt.Errorf("UpdateAllAirdropByID: airdrop not found in both collections")
+	_, errFree := GetAirdropFreeByID(id)
+	if errFree == nil {
+		return UpdateAirdropFreeByID(id, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim, price, usdIncome)
+	}
+
+	_, errPaid := GetAirdropPaidByID(id)
+	if errPaid == nil {
+		return UpdateAirdropPaidByID(id, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim, price, usdIncome)
+	}
+
+	return fmt.Errorf("UpdateAllAirdropByID: airdrop not found in both collections")
 }
 
 func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, marketCap, vesting, linkClaim string, price float64, usdIncome int) error {
 	collection := "airdrop_free"
 	filter := bson.M{"_id": id}
+
+	currentAirdrop, err := GetAirdropFreeByID(id)
+	if err != nil {
+		return fmt.Errorf("UpdateAirdropFreeByID: failed to get current airdrop: %v", err)
+	}
 
 	updateFields := bson.M{
 		"name":       name,
@@ -236,7 +240,7 @@ func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, statu
 		"status":     status,
 		"backed":     backed,
 		"funds":      funds,
-		"supply":     supply,       
+		"supply":     supply,
 		"market_cap": marketCap,
 		"vesting":    vesting,
 		"link_claim": linkClaim,
@@ -244,7 +248,7 @@ func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, statu
 		"usd_income": usdIncome,
 	}
 
-	if status == "ended" {
+	if status == "ended" && currentAirdrop.Status != "ended" {
 		now := time.Now()
 		updateFields["ended_at"] = now
 	}
@@ -269,6 +273,11 @@ func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, statu
 	collection := "airdrop_paid"
 	filter := bson.M{"_id": id}
 
+	currentAirdrop, err := GetAirdropPaidByID(id)
+	if err != nil {
+		return fmt.Errorf("UpdateAirdropPaidByID: failed to get current airdrop: %v", err)
+	}
+
 	updateFields := bson.M{
 		"name":       name,
 		"task":       task,
@@ -277,7 +286,7 @@ func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, statu
 		"status":     status,
 		"backed":     backed,
 		"funds":      funds,
-		"supply":     supply,       
+		"supply":     supply,
 		"market_cap": marketCap,
 		"vesting":    vesting,
 		"link_claim": linkClaim,
@@ -285,7 +294,7 @@ func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, statu
 		"usd_income": usdIncome,
 	}
 
-	if status == "ended" {
+	if status == "ended" && currentAirdrop.Status != "ended" {
 		now := time.Now()
 		updateFields["ended_at"] = now
 	}
@@ -307,17 +316,17 @@ func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, statu
 }
 
 func DeleteAllAirdropByID(id primitive.ObjectID) error {
-    var errFree, errPaid error
-    
-    errFree = DeleteAirdropFreeByID(id)
-    if errFree != nil {
-        errPaid = DeleteAirdropPaidByID(id)
-        if errPaid != nil {
-            return fmt.Errorf("DeleteAllAirdropByID: airdrop not found in both collections. Free error: %v, Paid error: %v", errFree, errPaid)
-        }
-    }
-    
-    return nil
+	var errFree, errPaid error
+
+	errFree = DeleteAirdropFreeByID(id)
+	if errFree != nil {
+		errPaid = DeleteAirdropPaidByID(id)
+		if errPaid != nil {
+			return fmt.Errorf("DeleteAllAirdropByID: airdrop not found in both collections. Free error: %v, Paid error: %v", errFree, errPaid)
+		}
+	}
+
+	return nil
 }
 
 func DeleteAirdropFreeByID(id primitive.ObjectID) error {
