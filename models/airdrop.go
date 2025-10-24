@@ -15,6 +15,7 @@ type AirdropFree struct {
 	Backed    string             `json:"backed,omitempty" bson:"backed,omitempty"`
 	Funds     string             `json:"funds,omitempty" bson:"funds,omitempty"`
 	Supply    string             `json:"supply,omitempty" bson:"supply,omitempty"`
+	Fdv    	  string             `json:"fdv,omitempty" bson:"fdv,omitempty"`
 	MarketCap string             `json:"market_cap,omitempty" bson:"market_cap,omitempty"`
 	Vesting   string             `json:"vesting,omitempty" bson:"vesting,omitempty"`
 	LinkClaim string             `json:"link_claim,omitempty" bson:"link_claim,omitempty"`
@@ -34,6 +35,7 @@ type AirdropPaid struct {
 	Backed    string             `json:"backed,omitempty" bson:"backed,omitempty"`
 	Funds     string             `json:"funds,omitempty" bson:"funds,omitempty"`
 	Supply    string             `json:"supply,omitempty" bson:"supply,omitempty"`
+	Fdv    	  string             `json:"fdv,omitempty" bson:"fdv,omitempty"`
 	MarketCap string             `json:"market_cap,omitempty" bson:"market_cap,omitempty"`
 	Vesting   string             `json:"vesting,omitempty" bson:"vesting,omitempty"`
 	LinkClaim string             `json:"link_claim,omitempty" bson:"link_claim,omitempty"`

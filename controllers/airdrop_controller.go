@@ -205,6 +205,7 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 		reqAirdrop.Backed,
 		reqAirdrop.Funds,
 		reqAirdrop.Supply,
+		reqAirdrop.Fdv,
 		reqAirdrop.MarketCap,
 		reqAirdrop.Vesting,
 		reqAirdrop.LinkClaim,
@@ -253,6 +254,7 @@ func InsertAirdropPaidHandler(c *fiber.Ctx) error {
 		reqAirdrop.Backed,
 		reqAirdrop.Funds,
 		reqAirdrop.Supply,
+		reqAirdrop.Fdv,
 		reqAirdrop.MarketCap,
 		reqAirdrop.Vesting,
 		reqAirdrop.LinkClaim,
@@ -295,6 +297,7 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 		Backed    string  `json:"backed"`
 		Funds     string  `json:"funds"`
 		Supply    string  `json:"supply"`
+		Fdv    	  string  `json:"fdv"`
 		MarketCap string  `json:"market_cap"`
 		Vesting   string  `json:"vesting"`
 		LinkClaim string  `json:"link_claim"`
@@ -338,6 +341,7 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 		updateData.Backed,
 		updateData.Funds,
 		updateData.Supply,
+		updateData.Fdv,
 		updateData.MarketCap,
 		updateData.Vesting,
 		updateData.LinkClaim,
@@ -373,6 +377,7 @@ func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
 		Backed    string  `json:"backed"`
 		Funds     string  `json:"funds"`
 		Supply    string  `json:"Supply"`
+		Fdv    	  string  `json:"fdv"`
 		MarketCap string  `json:"market_cap"`
 		Vesting   string  `json:"vesting"`
 		LinkClaim string  `json:"link_claim"`
@@ -396,6 +401,7 @@ func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
 		updateData.Backed,
 		updateData.Funds,
 		updateData.Supply,
+		updateData.Fdv,
 		updateData.MarketCap,
 		updateData.Vesting,
 		updateData.LinkClaim,
@@ -431,6 +437,7 @@ func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
 		Backed    string  `json:"backed"`
 		Funds     string  `json:"funds"`
 		Supply    string  `json:"Supply"`
+		Fdv    	  string  `json:"fdv"`
 		MarketCap string  `json:"market_cap"`
 		Vesting   string  `json:"vesting"`
 		LinkClaim string  `json:"link_claim"`
@@ -454,6 +461,7 @@ func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
 		updateData.Backed,
 		updateData.Funds,
 		updateData.Supply,
+		updateData.Fdv,
 		updateData.MarketCap,
 		updateData.Vesting,
 		updateData.LinkClaim,
