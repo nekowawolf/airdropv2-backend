@@ -78,13 +78,13 @@ func SaveRefreshToken(adminID, token string, expiresAt time.Time) error {
 func CheckRefreshToken(token string) bool {
 	collection := config.Database.Collection("refresh_tokens")
 	var rt models.RefreshToken
+
 	err := collection.FindOne(context.TODO(), bson.M{"token": token}).Decode(&rt)
 	if err != nil {
 		return false
 	}
 
 	if time.Now().After(rt.ExpiresAt) {
-		_, _ = collection.DeleteOne(context.TODO(), bson.M{"token": token})
 		return false
 	}
 
