@@ -50,5 +50,7 @@ func SetupRoutes(app *fiber.App) {
 	protected.Put("/cryptocommunity/:id", controllers.UpdateCryptoCommunityByID)
 	protected.Delete("/cryptocommunity/:id", controllers.DeleteCryptoCommunityByID)
 
-	protected.Post("/upload-image", controllers.UploadImageHandler)
+	protected.Post("/images", controllers.UploadImageHandler)
+	protected.Get("/images", controllers.GetAllImages)
+	protected.Delete("/images/:id", controllers.DeleteImage)
 }

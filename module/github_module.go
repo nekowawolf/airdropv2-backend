@@ -16,19 +16,19 @@ import (
 	"github.com/nekowawolf/airdropv2/models"
 )
 
-func UploadToGitHub(file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
+func UploadToGitHub(file multipart.File, fileHeader *multipart.FileHeader) (string, string, string, error) {
 	token := os.Getenv("GITHUB_TOKEN")
 	username := os.Getenv("GITHUB_USERNAME")
 	repo := os.Getenv("GITHUB_REPO")
 	baseDir := os.Getenv("GITHUB_UPLOAD_DIR")
 
 	if token == "" || username == "" || repo == "" {
-		return "", fmt.Errorf("GitHub environment variables not set")
+		return "", "", "", fmt.Errorf("GitHub environment variables not set")
 	}
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	encoded := base64.StdEncoding.EncodeToString(fileBytes)
@@ -55,7 +55,7 @@ func UploadToGitHub(file multipart.File, fileHeader *multipart.FileHeader) (stri
 
 	req, err := http.NewRequest("PUT", uploadURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -64,24 +64,22 @@ func UploadToGitHub(file multipart.File, fileHeader *multipart.FileHeader) (stri
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode >= 300 {
 		responseText, _ := io.ReadAll(res.Body)
-		return "", fmt.Errorf("GitHub upload failed: %s", responseText)
+		return "", "", "", fmt.Errorf("GitHub upload failed: %s", responseText)
 	}
 
 	var ghResp models.GitHubUploadResponse
 	json.NewDecoder(res.Body).Decode(&ghResp)
 
 	parts := strings.Split(ghResp.Content.Path, "/")
-
 	for i, p := range parts {
 		parts[i] = url.PathEscape(p)
 	}
-
 	escapedPath := strings.Join(parts, "/")
 
 	finalURL := fmt.Sprintf(
@@ -91,5 +89,50 @@ func UploadToGitHub(file multipart.File, fileHeader *multipart.FileHeader) (stri
 		escapedPath,
 	)
 
-	return finalURL, nil
+	return finalURL, ghResp.Content.Sha, ghResp.Content.Path, nil
+}
+
+func DeleteFromGitHub(path, sha string) error {
+	token := os.Getenv("GITHUB_TOKEN")
+	username := os.Getenv("GITHUB_USERNAME")
+	repo := os.Getenv("GITHUB_REPO")
+
+	if token == "" || username == "" || repo == "" {
+		return fmt.Errorf("GitHub environment variables not set")
+	}
+
+	deleteURL := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/contents/%s",
+		username,
+		repo,
+		path,
+	)
+
+	body := map[string]string{
+		"message": "Delete image via API",
+		"sha":     sha,
+	}
+
+	jsonBody, _ := json.Marshal(body)
+
+	req, err := http.NewRequest("DELETE", deleteURL, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode >= 300 {
+		return fmt.Errorf("GitHub deletion failed: %s", res.Status)
+	}
+
+	return nil
 }
