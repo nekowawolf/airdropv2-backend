@@ -34,6 +34,7 @@ func UploadImageHandler(c *fiber.Ctx) error {
 		ID:       primitive.NewObjectID(),
 		Filename: fileHeader.Filename,
 		URL:      url,
+		Size:     fileHeader.Size,
 		Sha:      sha,
 		Path:     path,
 	}

@@ -9,6 +9,7 @@ type Image struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	Filename string             `bson:"filename" json:"filename"`
 	URL      string             `bson:"url" json:"url"`
+	Size     int64              `bson:"size" json:"size"`
 	Sha      string             `bson:"sha" json:"sha"`
 	Path     string             `bson:"path" json:"path"`
 }
