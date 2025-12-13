@@ -12,6 +12,8 @@ func SetupRoutes(app *fiber.App) {
 	api.Post("/login", controllers.LoginAdminHandler)
 	api.Post("/refresh", controllers.RefreshTokenHandler)
 	api.Post("/logout", controllers.LogoutHandler)
+
+	api.Get("/portfolio", controllers.GetPortfolio)
 	
 	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
 	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
@@ -49,6 +51,22 @@ func SetupRoutes(app *fiber.App) {
 	protected.Post("/cryptocommunity", controllers.InsertCryptoCommunity)
 	protected.Put("/cryptocommunity/:id", controllers.UpdateCryptoCommunityByID)
 	protected.Delete("/cryptocommunity/:id", controllers.DeleteCryptoCommunityByID)
+
+	protected.Put("/portfolio", controllers.UpdatePortfolio)
+
+	protected.Post("/portfolio/certificates", controllers.AddCertificate)
+	protected.Post("/portfolio/designs", controllers.AddDesign)
+	protected.Post("/portfolio/projects", controllers.AddProject)
+	protected.Post("/portfolio/experience", controllers.AddExperience)
+	protected.Post("/portfolio/education", controllers.AddEducation)
+	protected.Post("/portfolio/skills/tech", controllers.AddTechSkill)
+
+	protected.Delete("/portfolio/certificates/:id", controllers.DeleteCertificate)
+	protected.Delete("/portfolio/designs/:id", controllers.DeleteDesign)
+	protected.Delete("/portfolio/projects/:id", controllers.DeleteProject)
+	protected.Delete("/portfolio/experience/:id", controllers.DeleteExperience)
+	protected.Delete("/portfolio/education/:id", controllers.DeleteEducation)
+	protected.Delete("/portfolio/skills/tech/:id", controllers.DeleteTechSkill)
 
 	protected.Post("/images", controllers.UploadImageHandler)
 	protected.Get("/images", controllers.GetAllImages)
