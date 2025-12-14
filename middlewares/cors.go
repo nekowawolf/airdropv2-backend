@@ -13,9 +13,11 @@ var origins = []string{
     "https://admin.nekowawolf.xyz",
     "https://nekowawolf.github.io",
     "https://airdrop.nekowawolf.xyz",
+    "https://portfolio.nekowawolf.xyz",
     "https://airdropv2-src.vercel.app",
     "https://nekowawolfv2-src.vercel.app",
     "https://admin-airdropv2-src.vercel.app",
+    "https://portfolio-src-orpin.vercel.app",
     "https://crypto-communityv2-src.vercel.app",
 }
 
