@@ -53,19 +53,20 @@ type Project struct {
 
 type Experience struct {
 	BaseItem   `bson:",inline"`
-	Role        string `bson:"role" json:"role"`
-	Company     string `bson:"company" json:"company"`
+	Title       string `bson:"title" json:"title"`
 	Description string `bson:"description" json:"description"`
+	Subjects    []string `bson:"subjects" json:"subjects"`
 	StartYear   int    `bson:"start_year" json:"start_year"`
 	EndYear     int    `bson:"end_year" json:"end_year"`
 }
 
 type Education struct {
 	BaseItem   `bson:",inline"`
-	Degree      string   `bson:"degree" json:"degree"`
-	Institution string   `bson:"institution" json:"institution"`
+	Title       string `bson:"title" json:"title"` 
 	Description string   `bson:"description" json:"description"`
 	Subjects    []string `bson:"subjects" json:"subjects"`
+	StartYear   int    `bson:"start_year" json:"start_year"`
+	EndYear     int    `bson:"end_year" json:"end_year"`
 }
 
 type Skills struct {
