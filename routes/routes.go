@@ -55,6 +55,7 @@ func SetupRoutes(app *fiber.App) {
 	protected.Put("/portfolio", controllers.UpdatePortfolio)
 
 	protected.Post("/portfolio/certificates", controllers.AddCertificate)
+	protected.Put("/portfolio/hero", controllers.UpdateHeroProfile)
 	protected.Post("/portfolio/designs", controllers.AddDesign)
 	protected.Post("/portfolio/projects", controllers.AddProject)
 	protected.Post("/portfolio/experience", controllers.AddExperience)

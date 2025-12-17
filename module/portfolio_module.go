@@ -25,6 +25,16 @@ func UpdatePortfolio(data models.Portfolio) error {
 	return err
 }
 
+func UpdateHeroProfile(hero models.HeroProfile) error {
+	_, err := config.Database.Collection(portfolioCollection).
+		UpdateOne(
+			context.TODO(), 
+			bson.M{}, 
+			bson.M{"$set": bson.M{"hero": hero}},
+		)
+	return err
+}
+
 func addItem(field string, item interface{}) error {
 	_, err := config.Database.Collection(portfolioCollection).
 		UpdateOne(context.TODO(), bson.M{}, bson.M{"$push": bson.M{field: item}})

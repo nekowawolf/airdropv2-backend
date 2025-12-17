@@ -25,6 +25,17 @@ func UpdatePortfolio(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Portfolio updated"})
 }
 
+func UpdateHeroProfile(c *fiber.Ctx) error {
+	var req models.HeroProfile
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid body"})
+	}
+	if err := module.UpdateHeroProfile(req); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Update hero profile failed"})
+	}
+	return c.JSON(fiber.Map{"message": "Hero profile updated"})
+}
+
 func AddCertificate(c *fiber.Ctx) error {
 	var req models.Certificate
 	c.BodyParser(&req)
