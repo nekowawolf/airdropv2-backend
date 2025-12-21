@@ -36,11 +36,21 @@ type Certificate struct {
 }
 
 type Design struct {
-	BaseItem   `bson:",inline"`
-	Title       string `bson:"title" json:"title"`
-	Description string `bson:"description" json:"description"`
+	BaseItem    `bson:",inline"`
+	Title       string           `bson:"title" json:"title"`
+	Description string           `bson:"description" json:"description"`
+	ImageURL    string           `bson:"image_url" json:"image_url"`
+	Link        string           `bson:"link" json:"link"`
+
+	Category    string           `bson:"category" json:"category"`
+	Tools       []string         `bson:"tools,omitempty" json:"tools,omitempty"`
+	Tags        []string         `bson:"tags,omitempty" json:"tags,omitempty"`
+	Screenshots []ScreenshotItem `bson:"screenshots,omitempty" json:"screenshots,omitempty"`
+}
+
+type ScreenshotItem struct {
 	ImageURL    string `bson:"image_url" json:"image_url"`
-	Link        string `bson:"link" json:"link"`
+	Description string `bson:"description,omitempty" json:"description,omitempty"`
 }
 
 type Project struct {
