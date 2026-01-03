@@ -1,8 +1,8 @@
 package test
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 
 	"github.com/nekowawolf/airdropv2/module"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,10 +21,15 @@ func TestInsertAirdropFree(t *testing.T) {
 	marketCap := "N/A"
 	vesting := "N/A"
 	linkClaim := "N/A"
+	linkDiscord := "https://discord.gg/carv"
+	linkTwitter := "https://twitter.com/carv_official"
+	imageURL := "https://example.com/carv.png"
+	description := "CARV is a modular data layer for gaming and AI."
+	linkGuide := "https://twitter.com/guide/carv"
 	price := 0.0
 	usdIncome := 0
 
-	hasil, err := module.InsertAirdropFree(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, price, usdIncome)
+	hasil, err := module.InsertAirdropFree(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide, price, usdIncome)
 	if err != nil {
 		t.Errorf("Failed to insert AirdropFree: %v", err)
 	} else {
@@ -45,10 +50,15 @@ func TestInsertAirdropPaid(t *testing.T) {
 	marketCap := "N/A"
 	vesting := "N/A"
 	linkClaim := "N/A"
+	linkDiscord := "https://discord.gg/owlto"
+	linkTwitter := "https://twitter.com/OwltoFinance"
+	imageURL := "https://example.com/owlto.png"
+	description := "Owlto Finance is a decentralized cross-rollup bridge."
+	linkGuide := "https://twitter.com/guide/owlto"
 	price := 0.0
 	usdIncome := 0
 
-	hasil, err := module.InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, price, usdIncome)
+	hasil, err := module.InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide, price, usdIncome)
 	if err != nil {
 		t.Errorf("Failed to insert AirdropPaid: %v", err)
 	} else {
@@ -164,7 +174,7 @@ func TestGetAirdropPaidByName(t *testing.T) {
 }
 
 func TestGetAllAirdropByName(t *testing.T) {
-	name := "Sender" 
+	name := "Sender"
 
 	airdrops, err := module.GetAllAirdropByName(name)
 	if err != nil {
@@ -192,15 +202,20 @@ func TestUpdateAirdropFreeByID(t *testing.T) {
 	newStatus := "ended"
 	newBacked := "HashKey Capital, ConsenSys"
 	newFunds := "53.37M"
-	newSupply := "100M" 
+	newSupply := "100M"
 	newFdv := "2.00B"
 	newMarketCap := "632.23M"
 	newVesting := "no"
 	newLinkClaim := "https://protocol.carv.io/claim"
+	newLinkDiscord := "https://discord.gg/carv-updated"
+	newLinkTwitter := "https://twitter.com/carv_official_updated"
+	newImageURL := "https://example.com/carv_updated.png"
+	newDescription := "Updated description for CARV."
+	newLinkGuide := "https://twitter.com/guide/carv_updated"
 	newPrice := 0.2
 	newUSDIncome := 1200
 
-	err = module.UpdateAirdropFreeByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newPrice, newUSDIncome)
+	err = module.UpdateAirdropFreeByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newLinkDiscord, newLinkTwitter, newImageURL, newDescription, newLinkGuide, newPrice, newUSDIncome)
 	if err != nil {
 		t.Errorf("Failed to update AirdropFree by ID: %v", err)
 		return
@@ -215,6 +230,8 @@ func TestUpdateAirdropFreeByID(t *testing.T) {
 	if airdrop.Name != newName || airdrop.Task != newTask || airdrop.Link != newLink || airdrop.Level != newLevel ||
 		airdrop.Status != newStatus || airdrop.Backed != newBacked || airdrop.Funds != newFunds || airdrop.Supply != newSupply || airdrop.Fdv != newFdv ||
 		airdrop.MarketCap != newMarketCap || airdrop.Vesting != newVesting || airdrop.LinkClaim != newLinkClaim ||
+		airdrop.LinkDiscord != newLinkDiscord || airdrop.LinkTwitter != newLinkTwitter || airdrop.ImageURL != newImageURL ||
+		airdrop.Description != newDescription || airdrop.LinkGuide != newLinkGuide ||
 		airdrop.Price != newPrice || airdrop.USDIncome != newUSDIncome {
 		t.Errorf("AirdropFree not updated correctly. Got: %+v", airdrop)
 	} else {
@@ -237,14 +254,19 @@ func TestUpdateAirdropPaidByID(t *testing.T) {
 	newBacked := "Bixin Ventures, GSR"
 	newFunds := "8.00M"
 	newSupply := "50M"
-	newFdv := "2.00B" 
+	newFdv := "2.00B"
 	newMarketCap := "788.75M"
 	newVesting := "yes"
 	newLinkClaim := "https://owlto.finance/airdrop"
+	newLinkDiscord := "https://discord.gg/owlto-updated"
+	newLinkTwitter := "https://twitter.com/OwltoFinance_updated"
+	newImageURL := "https://example.com/owlto_updated.png"
+	newDescription := "Updated description for Owlto."
+	newLinkGuide := "https://twitter.com/guide/owlto_updated"
 	newPrice := 0.5
 	newUSDIncome := 230
 
-	err = module.UpdateAirdropPaidByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newPrice, newUSDIncome)
+	err = module.UpdateAirdropPaidByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newLinkDiscord, newLinkTwitter, newImageURL, newDescription, newLinkGuide, newPrice, newUSDIncome)
 	if err != nil {
 		t.Errorf("Failed to update AirdropPaid by ID: %v", err)
 		return
@@ -259,6 +281,8 @@ func TestUpdateAirdropPaidByID(t *testing.T) {
 	if airdrop.Name != newName || airdrop.Task != newTask || airdrop.Link != newLink || airdrop.Level != newLevel ||
 		airdrop.Status != newStatus || airdrop.Backed != newBacked || airdrop.Funds != newFunds || airdrop.Supply != newSupply || airdrop.Fdv != newFdv ||
 		airdrop.MarketCap != newMarketCap || airdrop.Vesting != newVesting || airdrop.LinkClaim != newLinkClaim ||
+		airdrop.LinkDiscord != newLinkDiscord || airdrop.LinkTwitter != newLinkTwitter || airdrop.ImageURL != newImageURL ||
+		airdrop.Description != newDescription || airdrop.LinkGuide != newLinkGuide ||
 		airdrop.Price != newPrice || airdrop.USDIncome != newUSDIncome {
 		t.Errorf("AirdropPaid not updated correctly. Got: %+v", airdrop)
 	} else {
