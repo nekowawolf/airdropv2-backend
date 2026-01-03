@@ -209,6 +209,11 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 		reqAirdrop.MarketCap,
 		reqAirdrop.Vesting,
 		reqAirdrop.LinkClaim,
+		reqAirdrop.LinkDiscord,
+		reqAirdrop.LinkTwitter,
+		reqAirdrop.ImageURL,
+		reqAirdrop.Description,
+		reqAirdrop.LinkGuide,
 		reqAirdrop.Price,
 		reqAirdrop.USDIncome,
 	)
@@ -258,6 +263,11 @@ func InsertAirdropPaidHandler(c *fiber.Ctx) error {
 		reqAirdrop.MarketCap,
 		reqAirdrop.Vesting,
 		reqAirdrop.LinkClaim,
+		reqAirdrop.LinkDiscord,
+		reqAirdrop.LinkTwitter,
+		reqAirdrop.ImageURL,
+		reqAirdrop.Description,
+		reqAirdrop.LinkGuide,
 		reqAirdrop.Price,
 		reqAirdrop.USDIncome,
 	)
@@ -289,20 +299,25 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 	}
 
 	var updateData struct {
-		Name      string  `json:"name"`
-		Task      string  `json:"task"`
-		Link      string  `json:"link"`
-		Level     string  `json:"level"`
-		Status    string  `json:"status"`
-		Backed    string  `json:"backed"`
-		Funds     string  `json:"funds"`
-		Supply    string  `json:"supply"`
-		Fdv    	  string  `json:"fdv"`
-		MarketCap string  `json:"market_cap"`
-		Vesting   string  `json:"vesting"`
-		LinkClaim string  `json:"link_claim"`
-		Price     float64 `json:"price"`
-		USDIncome int     `json:"usd_income"`
+		Name        string  `json:"name"`
+		Task        string  `json:"task"`
+		Link        string  `json:"link"`
+		Level       string  `json:"level"`
+		Status      string  `json:"status"`
+		Backed      string  `json:"backed"`
+		Funds       string  `json:"funds"`
+		Supply      string  `json:"supply"`
+		Fdv         string  `json:"fdv"`
+		MarketCap   string  `json:"market_cap"`
+		Vesting     string  `json:"vesting"`
+		LinkClaim   string  `json:"link_claim"`
+		LinkDiscord string  `json:"link_discord"`
+		LinkTwitter string  `json:"link_twitter"`
+		ImageURL    string  `json:"image_url"`
+		Description string  `json:"description"`
+		LinkGuide   string  `json:"link_guide"`
+		Price       float64 `json:"price"`
+		USDIncome   int     `json:"usd_income"`
 	}
 
 	if err := c.BodyParser(&updateData); err != nil {
@@ -345,6 +360,11 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 		updateData.MarketCap,
 		updateData.Vesting,
 		updateData.LinkClaim,
+		updateData.LinkDiscord,
+		updateData.LinkTwitter,
+		updateData.ImageURL,
+		updateData.Description,
+		updateData.LinkGuide,
 		updateData.Price,
 		updateData.USDIncome,
 	)
@@ -369,20 +389,25 @@ func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
 	}
 
 	var updateData struct {
-		Name      string  `json:"name"`
-		Task      string  `json:"task"`
-		Link      string  `json:"link"`
-		Level     string  `json:"level"`
-		Status    string  `json:"status"`
-		Backed    string  `json:"backed"`
-		Funds     string  `json:"funds"`
-		Supply    string  `json:"Supply"`
-		Fdv    	  string  `json:"fdv"`
-		MarketCap string  `json:"market_cap"`
-		Vesting   string  `json:"vesting"`
-		LinkClaim string  `json:"link_claim"`
-		Price     float64 `json:"price"`
-		USDIncome int     `json:"usd_income"`
+		Name        string  `json:"name"`
+		Task        string  `json:"task"`
+		Link        string  `json:"link"`
+		Level       string  `json:"level"`
+		Status      string  `json:"status"`
+		Backed      string  `json:"backed"`
+		Funds       string  `json:"funds"`
+		Supply      string  `json:"Supply"`
+		Fdv         string  `json:"fdv"`
+		MarketCap   string  `json:"market_cap"`
+		Vesting     string  `json:"vesting"`
+		LinkClaim   string  `json:"link_claim"`
+		LinkDiscord string  `json:"link_discord"`
+		LinkTwitter string  `json:"link_twitter"`
+		ImageURL    string  `json:"image_url"`
+		Description string  `json:"description"`
+		LinkGuide   string  `json:"link_guide"`
+		Price       float64 `json:"price"`
+		USDIncome   int     `json:"usd_income"`
 	}
 
 	if err := c.BodyParser(&updateData); err != nil {
@@ -405,6 +430,11 @@ func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
 		updateData.MarketCap,
 		updateData.Vesting,
 		updateData.LinkClaim,
+		updateData.LinkDiscord,
+		updateData.LinkTwitter,
+		updateData.ImageURL,
+		updateData.Description,
+		updateData.LinkGuide,
 		updateData.Price,
 		updateData.USDIncome,
 	)
@@ -429,20 +459,25 @@ func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
 	}
 
 	var updateData struct {
-		Name      string  `json:"name"`
-		Task      string  `json:"task"`
-		Link      string  `json:"link"`
-		Level     string  `json:"level"`
-		Status    string  `json:"status"`
-		Backed    string  `json:"backed"`
-		Funds     string  `json:"funds"`
-		Supply    string  `json:"Supply"`
-		Fdv    	  string  `json:"fdv"`
-		MarketCap string  `json:"market_cap"`
-		Vesting   string  `json:"vesting"`
-		LinkClaim string  `json:"link_claim"`
-		Price     float64 `json:"price"`
-		USDIncome int     `json:"usd_income"`
+		Name        string  `json:"name"`
+		Task        string  `json:"task"`
+		Link        string  `json:"link"`
+		Level       string  `json:"level"`
+		Status      string  `json:"status"`
+		Backed      string  `json:"backed"`
+		Funds       string  `json:"funds"`
+		Supply      string  `json:"Supply"`
+		Fdv         string  `json:"fdv"`
+		MarketCap   string  `json:"market_cap"`
+		Vesting     string  `json:"vesting"`
+		LinkClaim   string  `json:"link_claim"`
+		LinkDiscord string  `json:"link_discord"`
+		LinkTwitter string  `json:"link_twitter"`
+		ImageURL    string  `json:"image_url"`
+		Description string  `json:"description"`
+		LinkGuide   string  `json:"link_guide"`
+		Price       float64 `json:"price"`
+		USDIncome   int     `json:"usd_income"`
 	}
 
 	if err := c.BodyParser(&updateData); err != nil {
@@ -465,6 +500,11 @@ func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
 		updateData.MarketCap,
 		updateData.Vesting,
 		updateData.LinkClaim,
+		updateData.LinkDiscord,
+		updateData.LinkTwitter,
+		updateData.ImageURL,
+		updateData.Description,
+		updateData.LinkGuide,
 		updateData.Price,
 		updateData.USDIncome,
 	)
