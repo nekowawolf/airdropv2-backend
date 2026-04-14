@@ -9,12 +9,15 @@ import (
 func SetupRoutes(app *fiber.App) {
 	api := app.Group("/airdrop")
 
+	// Auth routes
 	api.Post("/login", controllers.LoginAdminHandler)
 	api.Post("/refresh", controllers.RefreshTokenHandler)
 	api.Post("/logout", controllers.LogoutHandler)
 
+	// Public portfolio routes
 	api.Get("/portfolio", controllers.GetPortfolio)
 	
+	// Public airdrop routes
 	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
 	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
 	api.Get("/allairdrop", controllers.GetAllAirdropHandler)
@@ -22,13 +25,22 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/freeairdrop/search/:name", controllers.GetAirdropFreeByNameHandler)
 	api.Get("/paidairdrop/search/:name", controllers.GetAirdropPaidByNameHandler)
 
+	// Public crypto community routes
 	api.Get("/cryptocommunity", controllers.GetAllCryptoCommunity)
 	api.Get("/cryptocommunity/search/:name", controllers.GetCryptoCommunityByName)
-	
+
+	// Public price routes	
 	api.Get("/price", controllers.PriceHandler)
 
+	// Public link routes
+	api.Get("/profilelink", controllers.GetProfile)
+	api.Get("/postslink", controllers.GetAllPosts)
+	api.Get("/postslink/:id", controllers.GetPostByID)
+
+	// ==================== PROTECTED ROUTES ====================
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
+	// Protected airdrop routes
 	protected.Get("/allairdrop/:id", controllers.GetAllAirdropByIDHandler)
 	protected.Get("/freeairdrop/:id", controllers.GetAirdropFreeByIDHandler)
 	protected.Get("/paidairdrop/:id", controllers.GetAirdropPaidByIDHandler)
@@ -41,21 +53,16 @@ func SetupRoutes(app *fiber.App) {
 	protected.Delete("/freeairdrop/:id", controllers.DeleteAirdropFreeByIDHandler)
     protected.Delete("/paidairdrop/:id", controllers.DeleteAirdropPaidByIDHandler)
 
-	protected.Get("/notes", controllers.GetAllNotes)
-	protected.Get("/notes/:id", controllers.GetNotesByID)
-	protected.Post("/notes", controllers.InsertNotes)
-	protected.Put("/notes/:id", controllers.UpdateNotesByID)
-	protected.Delete("/notes/:id", controllers.DeleteNotesByID)
-
+	// Protected crypto community routes
 	protected.Get("/cryptocommunity/:id", controllers.GetCryptoCommunityByID)
 	protected.Post("/cryptocommunity", controllers.InsertCryptoCommunity)
 	protected.Put("/cryptocommunity/:id", controllers.UpdateCryptoCommunityByID)
 	protected.Delete("/cryptocommunity/:id", controllers.DeleteCryptoCommunityByID)
 
+	// Protected portfolio routes
 	protected.Put("/portfolio", controllers.UpdatePortfolio)
-
-	protected.Post("/portfolio/certificates", controllers.AddCertificate)
 	protected.Put("/portfolio/hero", controllers.UpdateHeroProfile)
+	protected.Post("/portfolio/certificates", controllers.AddCertificate)
 	protected.Post("/portfolio/designs", controllers.AddDesign)
 	protected.Post("/portfolio/projects", controllers.AddProject)
 	protected.Post("/portfolio/experience", controllers.AddExperience)
@@ -69,7 +76,14 @@ func SetupRoutes(app *fiber.App) {
 	protected.Delete("/portfolio/education/:id", controllers.DeleteEducation)
 	protected.Delete("/portfolio/skills/tech/:id", controllers.DeleteTechSkill)
 
+	// Protected image routes
 	protected.Post("/images", controllers.UploadImageHandler)
 	protected.Get("/images", controllers.GetAllImages)
 	protected.Delete("/images/:id", controllers.DeleteImage)
+
+	// Protected link routes
+	protected.Put("/profilelink", controllers.UpdateProfile)
+	protected.Post("/postslink", controllers.CreatePost)
+	protected.Put("/postslink/:id", controllers.UpdatePost)
+	protected.Delete("/postslink/:id", controllers.DeletePost)
 }

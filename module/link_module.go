@@ -1,0 +1,188 @@
+package module
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/nekowawolf/airdropv2/config"
+	"github.com/nekowawolf/airdropv2/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+// ==================== PROFILE CRUD ====================
+
+func GetProfile() (*models.Profile, error) {
+	collection := config.Database.Collection("profile")
+	var profile models.Profile
+
+	err := collection.FindOne(context.TODO(), bson.M{}).Decode(&profile)
+	if err != nil {
+		return nil, err
+	}
+	return &profile, nil
+}
+
+func UpdateProfile(profile models.Profile) error {
+	collection := config.Database.Collection("profile")
+
+	var existing models.Profile
+	err := collection.FindOne(context.TODO(), bson.M{}).Decode(&existing)
+
+	if err != nil {
+		profile.ID = primitive.NewObjectID()
+		_, err = collection.InsertOne(context.TODO(), profile)
+		return err
+	}
+
+	profile.ID = existing.ID
+	filter := bson.M{"_id": existing.ID}
+	update := bson.M{"$set": profile}
+	_, err = collection.UpdateOne(context.TODO(), filter, update)
+	return err
+}
+
+// ==================== POSTS CRUD ====================
+
+func GetAllPosts() ([]models.LinkPost, error) {
+	collection := config.Database.Collection("link_posts")
+
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("GetAllPosts Find: %v", err)
+	}
+	defer cursor.Close(context.TODO())
+
+	var posts []models.LinkPost
+	if err = cursor.All(context.TODO(), &posts); err != nil {
+		return nil, fmt.Errorf("GetAllPosts All: %v", err)
+	}
+
+	return posts, nil
+}
+
+func GetPostByID(id primitive.ObjectID) (*models.LinkPost, error) {
+	collection := config.Database.Collection("link_posts")
+	var post models.LinkPost
+
+	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&post)
+	if err != nil {
+		return nil, err
+	}
+	return &post, nil
+}
+
+func InsertPost(post models.LinkPost) (interface{}, error) {
+	collection := config.Database.Collection("link_posts")
+
+	now := time.Now()
+	post.ID = primitive.NewObjectID()
+	post.CreatedAt = now
+	post.Views = 0
+	post.IsVerified = true
+
+	profile, err := GetProfile()
+	if err == nil {
+		post.Name = profile.Name
+		post.Username = profile.Username
+	}
+
+	result, err := collection.InsertOne(context.TODO(), post)
+	if err != nil {
+		return nil, fmt.Errorf("InsertPost: %v", err)
+	}
+
+	return result.InsertedID, nil
+}
+
+func UpdatePost(id primitive.ObjectID, post models.LinkPost) error {
+	collection := config.Database.Collection("link_posts")
+
+	existing, err := GetPostByID(id)
+	if err != nil {
+		return errors.New("post not found")
+	}
+
+	post.ID = existing.ID
+	post.CreatedAt = existing.CreatedAt
+	post.Views = existing.Views
+	post.IsVerified = true
+	post.Name = existing.Name
+	post.Username = existing.Username
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": post}
+
+	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return fmt.Errorf("UpdatePost: %v", err)
+	}
+
+	if result.ModifiedCount == 0 {
+		return errors.New("no data has been changed")
+	}
+
+	return nil
+}
+
+func DeletePost(id primitive.ObjectID) error {
+	collection := config.Database.Collection("link_posts")
+
+	result, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	if err != nil {
+		return fmt.Errorf("DeletePost: %v", err)
+	}
+
+	if result.DeletedCount == 0 {
+		return errors.New("post not found")
+	}
+
+	viewCollection := config.Database.Collection("view_stats")
+	_, _ = viewCollection.DeleteMany(context.TODO(), bson.M{"post_id": id})
+
+	return nil
+}
+
+// ==================== VIEWS SYSTEM ====================
+
+func IncrementPostView(postID primitive.ObjectID, sessionID string) error {
+	viewCollection := config.Database.Collection("view_stats")
+
+	var existingView models.ViewStats
+	err := viewCollection.FindOne(context.TODO(), bson.M{
+		"post_id":    postID,
+		"session_id": sessionID,
+	}).Decode(&existingView)
+
+	if err == nil {
+		return nil
+	}
+
+	view := models.ViewStats{
+		ID:        primitive.NewObjectID(),
+		PostID:    postID,
+		SessionID: sessionID,
+		ViewedAt:  time.Now(),
+	}
+
+	_, err = viewCollection.InsertOne(context.TODO(), view)
+	if err != nil {
+		return err
+	}
+
+	postCollection := config.Database.Collection("link_posts")
+	_, err = postCollection.UpdateOne(
+		context.TODO(),
+		bson.M{"_id": postID},
+		bson.M{"$inc": bson.M{"views": 1}},
+	)
+
+	return err
+}
+
+func GetPostViewCount(postID primitive.ObjectID) (int64, error) {
+	collection := config.Database.Collection("view_stats")
+	return collection.CountDocuments(context.TODO(), bson.M{"post_id": postID})
+}
