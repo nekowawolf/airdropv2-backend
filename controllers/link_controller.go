@@ -63,8 +63,10 @@ func UpdateProfile(c *fiber.Ctx) error {
 func GetAllPosts(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 5)
+	category := c.Query("category", "")
+	search := c.Query("search", "")
 
-	posts, err := module.GetPostsPaginated(page, limit)
+	posts, err := module.GetPostsPaginated(page, limit, category, search)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to retrieve posts",

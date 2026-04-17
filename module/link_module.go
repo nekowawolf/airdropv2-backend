@@ -64,7 +64,7 @@ func GetAllPosts() ([]models.LinkPost, error) {
 	return posts, nil
 }
 
-func GetPostsPaginated(page, limit int) ([]models.LinkPost, error) {
+func GetPostsPaginated(page, limit int, category, search string) ([]models.LinkPost, error) {
 	collection := config.Database.Collection("link_posts")
 
 	skip := (page - 1) * limit
@@ -74,7 +74,17 @@ func GetPostsPaginated(page, limit int) ([]models.LinkPost, error) {
 	findOptions.SetLimit(int64(limit))
 	findOptions.SetSort(bson.D{{Key: "created_at", Value: -1}})
 
-	cursor, err := collection.Find(context.TODO(), bson.M{}, findOptions)
+	filter := bson.M{}
+
+	if category != "" && category != "all" {
+		filter["category"] = category
+	}
+
+	if search != "" {
+		filter["caption"] = bson.M{"$regex": primitive.Regex{Pattern: search, Options: "i"}}
+	}
+
+	cursor, err := collection.Find(context.TODO(), filter, findOptions)
 	if err != nil {
 		return nil, fmt.Errorf("GetPostsPaginated Find: %v", err)
 	}
