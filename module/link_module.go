@@ -10,6 +10,7 @@ import (
 	"github.com/nekowawolf/airdropv2/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // ==================== PROFILE CRUD ====================
@@ -58,6 +59,35 @@ func GetAllPosts() ([]models.LinkPost, error) {
 	var posts []models.LinkPost
 	if err = cursor.All(context.TODO(), &posts); err != nil {
 		return nil, fmt.Errorf("GetAllPosts All: %v", err)
+	}
+
+	return posts, nil
+}
+
+func GetPostsPaginated(page, limit int) ([]models.LinkPost, error) {
+	collection := config.Database.Collection("link_posts")
+
+	skip := (page - 1) * limit
+
+	findOptions := options.Find()
+	findOptions.SetSkip(int64(skip))
+	findOptions.SetLimit(int64(limit))
+	findOptions.SetSort(bson.D{{Key: "created_at", Value: -1}})
+
+	cursor, err := collection.Find(context.TODO(), bson.M{}, findOptions)
+	if err != nil {
+		return nil, fmt.Errorf("GetPostsPaginated Find: %v", err)
+	}
+	defer cursor.Close(context.TODO())
+
+	var posts []models.LinkPost
+	if err = cursor.All(context.TODO(), &posts); err != nil {
+		return nil, fmt.Errorf("GetPostsPaginated All: %v", err)
+	}
+
+	// if posts is null, return empty array instead of nil
+	if posts == nil {
+		posts = []models.LinkPost{}
 	}
 
 	return posts, nil
