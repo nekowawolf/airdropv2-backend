@@ -35,6 +35,7 @@ func SetupRoutes(app *fiber.App) {
 	// Public link routes
 	api.Get("/profilelink", controllers.GetProfile)
 	api.Get("/postslink", controllers.GetAllPosts)
+	api.Get("/postslink/stats", controllers.GetPostStats)
 	api.Get("/postslink/:id", controllers.GetPostByID)
 
 	// ==================== PROTECTED ROUTES ====================

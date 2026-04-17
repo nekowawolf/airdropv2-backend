@@ -103,6 +103,28 @@ func GetPostsPaginated(page, limit int, category, search string) ([]models.LinkP
 	return posts, nil
 }
 
+func GetPostStats() (map[string]int64, error) {
+	collection := config.Database.Collection("link_posts")
+	
+	stats := make(map[string]int64)
+	total, err := collection.CountDocuments(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	stats["all"] = total
+
+	aiReq, _ := collection.CountDocuments(context.TODO(), bson.M{"category": "AI Prompts"})
+	stats["AI Prompts"] = aiReq
+
+	tplReq, _ := collection.CountDocuments(context.TODO(), bson.M{"category": "Templates"})
+	stats["Templates"] = tplReq
+
+	projReq, _ := collection.CountDocuments(context.TODO(), bson.M{"category": "projects"})
+	stats["projects"] = projReq
+
+	return stats, nil
+}
+
 func GetPostByID(id primitive.ObjectID) (*models.LinkPost, error) {
 	collection := config.Database.Collection("link_posts")
 	var post models.LinkPost

@@ -58,6 +58,19 @@ func UpdateProfile(c *fiber.Ctx) error {
 	})
 }
 
+func GetPostStats(c *fiber.Ctx) error {
+	stats, err := module.GetPostStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve stats",
+		})
+	}
+	return c.JSON(fiber.Map{
+		"message": "Stats retrieved successfully",
+		"data":    stats,
+	})
+}
+
 // ==================== POSTS CONTROLLERS ====================
 
 func GetAllPosts(c *fiber.Ctx) error {
