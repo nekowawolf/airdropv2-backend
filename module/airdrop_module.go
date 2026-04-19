@@ -21,7 +21,7 @@ func InsertOneDocAirdrop(collection string, doc interface{}) (interface{}, error
 	return insertResult.InsertedID, nil
 }
 
-func InsertAirdropFree(name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide string, price float64, usdIncome int) (interface{}, error) {
+func InsertAirdropFree(name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide string, price float64, usdIncome int) (interface{}, error) {
 	var endedAt *time.Time
 	if status == "ended" {
 		now := time.Now()
@@ -44,6 +44,7 @@ func InsertAirdropFree(name, task, link, level, status, backed, funds, supply, f
 		LinkClaim:   linkClaim,
 		LinkDiscord: linkDiscord,
 		LinkTwitter: linkTwitter,
+		LinkTelegram: linkTelegram,
 		ImageURL:    imageURL,
 		Description: description,
 		LinkGuide:   linkGuide,
@@ -55,7 +56,7 @@ func InsertAirdropFree(name, task, link, level, status, backed, funds, supply, f
 	return InsertOneDocAirdrop("airdrop_free", freeAirdrop)
 }
 
-func InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide string, price float64, usdIncome int) (interface{}, error) {
+func InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide string, price float64, usdIncome int) (interface{}, error) {
 	var endedAt *time.Time
 	if status == "ended" {
 		now := time.Now()
@@ -78,6 +79,7 @@ func InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, f
 		LinkClaim:   linkClaim,
 		LinkDiscord: linkDiscord,
 		LinkTwitter: linkTwitter,
+		LinkTelegram: linkTelegram,
 		ImageURL:    imageURL,
 		Description: description,
 		LinkGuide:   linkGuide,
@@ -221,21 +223,21 @@ func GetAllAirdropByName(name string) ([]interface{}, error) {
 	return allAirdrops, nil
 }
 
-func UpdateAllAirdropByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide string, price float64, usdIncome int) error {
+func UpdateAllAirdropByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide string, price float64, usdIncome int) error {
 	_, errFree := GetAirdropFreeByID(id)
 	if errFree == nil {
-		return UpdateAirdropFreeByID(id, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide, price, usdIncome)
+		return UpdateAirdropFreeByID(id, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide, price, usdIncome)
 	}
 
 	_, errPaid := GetAirdropPaidByID(id)
 	if errPaid == nil {
-		return UpdateAirdropPaidByID(id, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide, price, usdIncome)
+		return UpdateAirdropPaidByID(id, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide, price, usdIncome)
 	}
 
 	return fmt.Errorf("UpdateAllAirdropByID: airdrop not found in both collections")
 }
 
-func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide string, price float64, usdIncome int) error {
+func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide string, price float64, usdIncome int) error {
 	collection := "airdrop_free"
 	filter := bson.M{"_id": id}
 
@@ -259,6 +261,7 @@ func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, statu
 		"link_claim":   linkClaim,
 		"link_discord": linkDiscord,
 		"link_twitter": linkTwitter,
+		"link_telegram": linkTelegram,
 		"image_url":    imageURL,
 		"description":  description,
 		"link_guide":   linkGuide,
@@ -287,7 +290,7 @@ func UpdateAirdropFreeByID(id primitive.ObjectID, name, task, link, level, statu
 	return nil
 }
 
-func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, imageURL, description, linkGuide string, price float64, usdIncome int) error {
+func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, status, backed, funds, supply, fdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide string, price float64, usdIncome int) error {
 	collection := "airdrop_paid"
 	filter := bson.M{"_id": id}
 
@@ -311,6 +314,7 @@ func UpdateAirdropPaidByID(id primitive.ObjectID, name, task, link, level, statu
 		"link_claim":   linkClaim,
 		"link_discord": linkDiscord,
 		"link_twitter": linkTwitter,
+		"link_telegram": linkTelegram,
 		"image_url":    imageURL,
 		"description":  description,
 		"link_guide":   linkGuide,

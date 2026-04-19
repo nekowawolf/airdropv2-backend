@@ -211,6 +211,7 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 		reqAirdrop.LinkClaim,
 		reqAirdrop.LinkDiscord,
 		reqAirdrop.LinkTwitter,
+		reqAirdrop.LinkTelegram,
 		reqAirdrop.ImageURL,
 		reqAirdrop.Description,
 		reqAirdrop.LinkGuide,
@@ -265,6 +266,7 @@ func InsertAirdropPaidHandler(c *fiber.Ctx) error {
 		reqAirdrop.LinkClaim,
 		reqAirdrop.LinkDiscord,
 		reqAirdrop.LinkTwitter,
+		reqAirdrop.LinkTelegram,
 		reqAirdrop.ImageURL,
 		reqAirdrop.Description,
 		reqAirdrop.LinkGuide,
@@ -313,6 +315,7 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 		LinkClaim   string  `json:"link_claim"`
 		LinkDiscord string  `json:"link_discord"`
 		LinkTwitter string  `json:"link_twitter"`
+		LinkTelegram string `json:"link_telegram"`
 		ImageURL    string  `json:"image_url"`
 		Description string  `json:"description"`
 		LinkGuide   string  `json:"link_guide"`
@@ -362,6 +365,7 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 		updateData.LinkClaim,
 		updateData.LinkDiscord,
 		updateData.LinkTwitter,
+		updateData.LinkTelegram,
 		updateData.ImageURL,
 		updateData.Description,
 		updateData.LinkGuide,
@@ -403,6 +407,7 @@ func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
 		LinkClaim   string  `json:"link_claim"`
 		LinkDiscord string  `json:"link_discord"`
 		LinkTwitter string  `json:"link_twitter"`
+		LinkTelegram string `json:"link_telegram"`
 		ImageURL    string  `json:"image_url"`
 		Description string  `json:"description"`
 		LinkGuide   string  `json:"link_guide"`
@@ -432,6 +437,7 @@ func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
 		updateData.LinkClaim,
 		updateData.LinkDiscord,
 		updateData.LinkTwitter,
+		updateData.LinkTelegram,
 		updateData.ImageURL,
 		updateData.Description,
 		updateData.LinkGuide,
@@ -473,6 +479,7 @@ func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
 		LinkClaim   string  `json:"link_claim"`
 		LinkDiscord string  `json:"link_discord"`
 		LinkTwitter string  `json:"link_twitter"`
+		LinkTelegram string `json:"link_telegram"`
 		ImageURL    string  `json:"image_url"`
 		Description string  `json:"description"`
 		LinkGuide   string  `json:"link_guide"`
@@ -502,6 +509,7 @@ func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
 		updateData.LinkClaim,
 		updateData.LinkDiscord,
 		updateData.LinkTwitter,
+		updateData.LinkTelegram,
 		updateData.ImageURL,
 		updateData.Description,
 		updateData.LinkGuide,

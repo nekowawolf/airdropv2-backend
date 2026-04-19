@@ -22,6 +22,7 @@ type AirdropFree struct {
 	LinkClaim   string             `json:"link_claim,omitempty" bson:"link_claim,omitempty"`
 	LinkDiscord string             `json:"link_discord,omitempty" bson:"link_discord,omitempty"`
 	LinkTwitter string             `json:"link_twitter,omitempty" bson:"link_twitter,omitempty"`
+	LinkTelegram string            `json:"link_telegram,omitempty" bson:"link_telegram,omitempty"`
 	ImageURL    string             `json:"image_url,omitempty" bson:"image_url,omitempty"`
 	Description string             `json:"description,omitempty" bson:"description,omitempty"`
 	LinkGuide   string             `json:"link_guide,omitempty" bson:"link_guide,omitempty"`
@@ -47,6 +48,7 @@ type AirdropPaid struct {
 	LinkClaim   string             `json:"link_claim,omitempty" bson:"link_claim,omitempty"`
 	LinkDiscord string             `json:"link_discord,omitempty" bson:"link_discord,omitempty"`
 	LinkTwitter string             `json:"link_twitter,omitempty" bson:"link_twitter,omitempty"`
+	LinkTelegram string            `json:"link_telegram,omitempty" bson:"link_telegram,omitempty"`
 	ImageURL    string             `json:"image_url,omitempty" bson:"image_url,omitempty"`
 	Description string             `json:"description,omitempty" bson:"description,omitempty"`
 	LinkGuide   string             `json:"link_guide,omitempty" bson:"link_guide,omitempty"`
