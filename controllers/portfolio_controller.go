@@ -103,6 +103,18 @@ func DeleteEducation(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Education deleted"})
 }
 
+func AddDesignSkill(c *fiber.Ctx) error {
+	var req models.SkillItem
+	c.BodyParser(&req)
+	module.AddDesignSkill(req)
+	return c.JSON(fiber.Map{"message": "Design skill added"})
+}
+
+func DeleteDesignSkill(c *fiber.Ctx) error {
+	module.DeleteDesignSkill(c.Params("id"))
+	return c.JSON(fiber.Map{"message": "Design skill deleted"})
+}
+
 func DeleteTechSkill(c *fiber.Ctx) error {
 	module.DeleteTechSkill(c.Params("id"))
 	return c.JSON(fiber.Map{"message": "Tech skill deleted"})
