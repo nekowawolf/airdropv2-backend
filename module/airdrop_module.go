@@ -113,6 +113,55 @@ func GetAllAirdrop() ([]interface{}, error) {
 	return allAirdrops, nil
 }
 
+func GetAllAirdropStats() (map[string]int, error) {
+	freeColl := config.Database.Collection("airdrop_free")
+	paidColl := config.Database.Collection("airdrop_paid")
+
+	var total, active, ended int64
+
+	totalCount, err := freeColl.CountDocuments(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error counting total free: %v", err)
+	}
+	total += totalCount
+
+	activeCount, err := freeColl.CountDocuments(context.TODO(), bson.M{"status": bson.M{"$ne": "ended"}})
+	if err != nil {
+		return nil, fmt.Errorf("error counting active free: %v", err)
+	}
+	active += activeCount
+
+	endedCount, err := freeColl.CountDocuments(context.TODO(), bson.M{"status": "ended"})
+	if err != nil {
+		return nil, fmt.Errorf("error counting ended free: %v", err)
+	}
+	ended += endedCount
+
+	totalCount, err = paidColl.CountDocuments(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error counting total paid: %v", err)
+	}
+	total += totalCount
+
+	activeCount, err = paidColl.CountDocuments(context.TODO(), bson.M{"status": bson.M{"$ne": "ended"}})
+	if err != nil {
+		return nil, fmt.Errorf("error counting active paid: %v", err)
+	}
+	active += activeCount
+
+	endedCount, err = paidColl.CountDocuments(context.TODO(), bson.M{"status": "ended"})
+	if err != nil {
+		return nil, fmt.Errorf("error counting ended paid: %v", err)
+	}
+	ended += endedCount
+
+	return map[string]int{
+		"total":  int(total),
+		"active": int(active),
+		"ended":  int(ended),
+	}, nil
+}
+
 func GetAllAirdropFree() ([]models.AirdropFree, error) {
 	collection := config.Database.Collection("airdrop_free")
 	cursor, err := collection.Find(context.TODO(), bson.M{})

@@ -54,74 +54,6 @@ func GetAllCryptoCommunity() ([]models.CryptoCommunity, error) {
 	return communities, nil
 }
 
-func GetCryptoCommunityByID(id primitive.ObjectID) (*models.CryptoCommunity, error) {
-	collection := config.Database.Collection("cryptoCommunity")
-	filter := bson.M{"_id": id}
-
-	var result models.CryptoCommunity
-	err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
-}
-
-func GetCryptoCommunityByName(name string) ([]models.CryptoCommunity, error) {
-	collection := config.Database.Collection("cryptoCommunity")
-
-	filter := bson.M{"name": bson.M{"$regex": name, "$options": "i"}}
-	cursor, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving data by name: %v", err)
-	}
-	defer cursor.Close(context.TODO())
-
-	var communities []models.CryptoCommunity
-	if err = cursor.All(context.TODO(), &communities); err != nil {
-		return nil, fmt.Errorf("error decoding data: %v", err)
-	}
-
-	return communities, nil
-}
-
-func UpdateCryptoCommunityByID(id primitive.ObjectID, updateData models.CryptoCommunity) (*models.CryptoCommunity, error) {
-	collection := config.Database.Collection("cryptoCommunity")
-
-	update := bson.M{
-		"$set": bson.M{
-			"name":       updateData.Name,
-			"platforms":  updateData.Platforms,
-			"category":   updateData.Category,
-			"img_url":    updateData.ImgURL,
-			"link_url":   updateData.LinkURL,
-		},
-	}
-
-	_, err := collection.UpdateOne(context.TODO(), bson.M{"_id": id}, update)
-	if err != nil {
-		return nil, fmt.Errorf("error updating document: %v", err)
-	}
-
-	return &updateData, nil
-}
-
-func DeleteCryptoCommunityByID(id primitive.ObjectID) error {
-    collection := config.Database.Collection("cryptoCommunity")
-    filter := bson.M{"_id": id}
-
-    result, err := collection.DeleteOne(context.TODO(), filter)
-    if err != nil {
-        return fmt.Errorf("error deleting crypto community for ID %s: %s", id.Hex(), err.Error())
-    }
-
-    if result.DeletedCount == 0 {
-        return fmt.Errorf("no crypto community found with ID %s", id.Hex())
-    }
-
-    return nil
-}
-
 func GetCryptoCommunityStats() (map[string]interface{}, error) {
     collection := config.Database.Collection("cryptoCommunity")
 
@@ -203,4 +135,72 @@ func GetCryptoCommunityStats() (map[string]interface{}, error) {
     }
 
     return stats, nil
+}
+
+func GetCryptoCommunityByID(id primitive.ObjectID) (*models.CryptoCommunity, error) {
+	collection := config.Database.Collection("cryptoCommunity")
+	filter := bson.M{"_id": id}
+
+	var result models.CryptoCommunity
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func GetCryptoCommunityByName(name string) ([]models.CryptoCommunity, error) {
+	collection := config.Database.Collection("cryptoCommunity")
+
+	filter := bson.M{"name": bson.M{"$regex": name, "$options": "i"}}
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving data by name: %v", err)
+	}
+	defer cursor.Close(context.TODO())
+
+	var communities []models.CryptoCommunity
+	if err = cursor.All(context.TODO(), &communities); err != nil {
+		return nil, fmt.Errorf("error decoding data: %v", err)
+	}
+
+	return communities, nil
+}
+
+func UpdateCryptoCommunityByID(id primitive.ObjectID, updateData models.CryptoCommunity) (*models.CryptoCommunity, error) {
+	collection := config.Database.Collection("cryptoCommunity")
+
+	update := bson.M{
+		"$set": bson.M{
+			"name":       updateData.Name,
+			"platforms":  updateData.Platforms,
+			"category":   updateData.Category,
+			"img_url":    updateData.ImgURL,
+			"link_url":   updateData.LinkURL,
+		},
+	}
+
+	_, err := collection.UpdateOne(context.TODO(), bson.M{"_id": id}, update)
+	if err != nil {
+		return nil, fmt.Errorf("error updating document: %v", err)
+	}
+
+	return &updateData, nil
+}
+
+func DeleteCryptoCommunityByID(id primitive.ObjectID) error {
+    collection := config.Database.Collection("cryptoCommunity")
+    filter := bson.M{"_id": id}
+
+    result, err := collection.DeleteOne(context.TODO(), filter)
+    if err != nil {
+        return fmt.Errorf("error deleting crypto community for ID %s: %s", id.Hex(), err.Error())
+    }
+
+    if result.DeletedCount == 0 {
+        return fmt.Errorf("no crypto community found with ID %s", id.Hex())
+    }
+
+    return nil
 }

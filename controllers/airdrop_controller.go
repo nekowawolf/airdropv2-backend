@@ -21,6 +21,20 @@ func GetAllAirdropHandler(c *fiber.Ctx) error {
 	})
 }
 
+func GetAllAirdropStatsHandler(c *fiber.Ctx) error {
+	stats, err := module.GetAllAirdropStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Stats retrieved successfully",
+		"data":    stats,
+	})
+}
+
 func GetAirdropFreeHandler(c *fiber.Ctx) error {
 	data, err := module.GetAllAirdropFree()
 	if err != nil {

@@ -21,6 +21,7 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
 	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
 	api.Get("/allairdrop", controllers.GetAllAirdropHandler)
+	api.Get("/allairdrop/stats", controllers.GetAllAirdropStatsHandler)
 	api.Get("/allairdrop/search/:name", controllers.GetAllAirdropByNameHandler)
 	api.Get("/freeairdrop/search/:name", controllers.GetAirdropFreeByNameHandler)
 	api.Get("/paidairdrop/search/:name", controllers.GetAirdropPaidByNameHandler)
