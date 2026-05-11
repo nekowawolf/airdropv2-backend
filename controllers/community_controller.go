@@ -9,7 +9,7 @@ import (
 )
 
 func GetAllCryptoCommunity(c *fiber.Ctx) error {
-	cryptoCommunities, err := module.GetAllCryptoCommunity() 
+	cryptoCommunities, err := module.GetAllCryptoCommunity()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -19,6 +19,20 @@ func GetAllCryptoCommunity(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Data retrieved successfully",
 		"data":    cryptoCommunities,
+	})
+}
+
+func GetCryptoCommunityStats(c *fiber.Ctx) error {
+	stats, err := module.GetCryptoCommunityStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Stats retrieved successfully",
+		"data":    stats,
 	})
 }
 

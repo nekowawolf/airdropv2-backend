@@ -121,3 +121,86 @@ func DeleteCryptoCommunityByID(id primitive.ObjectID) error {
 
     return nil
 }
+
+func GetCryptoCommunityStats() (map[string]interface{}, error) {
+    collection := config.Database.Collection("cryptoCommunity")
+
+    pipeline := bson.A{
+        bson.M{
+            "$facet": bson.M{
+                "total": bson.A{
+                    bson.M{"$count": "count"},
+                },
+                "categories": bson.A{
+                    bson.M{"$group": bson.M{"_id": "$category", "count": bson.M{"$sum": 1}}},
+                },
+                "platforms": bson.A{
+                    bson.M{"$group": bson.M{"_id": "$platforms", "count": bson.M{"$sum": 1}}},
+                },
+            },
+        },
+    }
+
+    cursor, err := collection.Aggregate(context.TODO(), pipeline)
+    if err != nil {
+        return nil, fmt.Errorf("error aggregating data: %v", err)
+    }
+    defer cursor.Close(context.TODO())
+
+    var results []bson.M
+    if err = cursor.All(context.TODO(), &results); err != nil {
+        return nil, fmt.Errorf("error decoding aggregation: %v", err)
+    }
+
+    stats := map[string]interface{}{
+        "total":      0,
+        "categories": map[string]int{},
+        "platforms":  map[string]int{},
+    }
+
+    if len(results) > 0 {
+        facet := results[0]
+
+        if totalArr, ok := facet["total"].(bson.A); ok && len(totalArr) > 0 {
+            if totalDoc, ok := totalArr[0].(bson.M); ok {
+                if count, ok := totalDoc["count"].(int32); ok {
+                    stats["total"] = int(count)
+                }
+            }
+        }
+
+        categories := make(map[string]int)
+        if catArr, ok := facet["categories"].(bson.A); ok {
+            for _, item := range catArr {
+                if doc, ok := item.(bson.M); ok {
+                    key := ""
+                    if doc["_id"] != nil {
+                        key = doc["_id"].(string)
+                    }
+                    if count, ok := doc["count"].(int32); ok {
+                        categories[key] = int(count)
+                    }
+                }
+            }
+        }
+        stats["categories"] = categories
+
+        platforms := make(map[string]int)
+        if platArr, ok := facet["platforms"].(bson.A); ok {
+            for _, item := range platArr {
+                if doc, ok := item.(bson.M); ok {
+                    key := ""
+                    if doc["_id"] != nil {
+                        key = doc["_id"].(string)
+                    }
+                    if count, ok := doc["count"].(int32); ok {
+                        platforms[key] = int(count)
+                    }
+                }
+            }
+        }
+        stats["platforms"] = platforms
+    }
+
+    return stats, nil
+}

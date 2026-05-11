@@ -27,6 +27,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// Public crypto community routes
 	api.Get("/cryptocommunity", controllers.GetAllCryptoCommunity)
+	api.Get("/cryptocommunity/stats", controllers.GetCryptoCommunityStats)
 	api.Get("/cryptocommunity/search/:name", controllers.GetCryptoCommunityByName)
 
 	// Public price routes	
