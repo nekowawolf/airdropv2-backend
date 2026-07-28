@@ -14,6 +14,45 @@ import (
 
 var TelegramBot *tele.Bot
 
+// Wrapper to automatically inject ThreadID so replies go to the correct sub-topic
+type threadContext struct {
+	tele.Context
+}
+
+func (c *threadContext) injectThreadID(opts []interface{}) []interface{} {
+	threadID := 0
+	if msg := c.Message(); msg != nil {
+		threadID = msg.ThreadID
+	} else if cb := c.Callback(); cb != nil && cb.Message != nil {
+		threadID = cb.Message.ThreadID
+	}
+
+	if threadID != 0 {
+		hasOpts := false
+		for _, opt := range opts {
+			if so, ok := opt.(*tele.SendOptions); ok {
+				if so.ThreadID == 0 {
+					so.ThreadID = threadID
+				}
+				hasOpts = true
+				break
+			}
+		}
+		if !hasOpts {
+			opts = append([]interface{}{&tele.SendOptions{ThreadID: threadID}}, opts...)
+		}
+	}
+	return opts
+}
+
+func (c *threadContext) Send(what interface{}, opts ...interface{}) error {
+	return c.Context.Send(what, c.injectThreadID(opts)...)
+}
+
+func (c *threadContext) EditOrSend(what interface{}, opts ...interface{}) error {
+	return c.Context.EditOrSend(what, c.injectThreadID(opts)...)
+}
+
 func InitBot() {
 	token := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if token == "" {
@@ -36,10 +75,11 @@ func InitBot() {
 	// Security Middleware
 	b.Use(func(next tele.HandlerFunc) tele.HandlerFunc {
 		return func(c tele.Context) error {
-			if !checkAuth(c) {
-				return c.Send("❌ Unauthorized access.")
+			tc := &threadContext{Context: c}
+			if !checkAuth(tc) {
+				return tc.Send("❌ Unauthorized access.")
 			}
-			return next(c)
+			return next(tc)
 		}
 	})
 
@@ -241,7 +281,15 @@ func SendBackupArchive() {
 		FileName: filename,
 	}
 
-	_, err = TelegramBot.Send(chat, doc)
+	sendOpts := &tele.SendOptions{}
+	backupThreadIDStr := os.Getenv("TELEGRAM_BACKUP_THREAD_ID")
+	if backupThreadIDStr != "" {
+		if threadID, err := strconv.Atoi(backupThreadIDStr); err == nil {
+			sendOpts.ThreadID = threadID
+		}
+	}
+
+	_, err = TelegramBot.Send(chat, doc, sendOpts)
 	if err != nil {
 		log.Printf("Failed to send automated backup to chat: %v\n", err)
 	} else {
