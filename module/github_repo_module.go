@@ -183,3 +183,23 @@ func DeleteGithubRepoByID(id primitive.ObjectID) error {
 
 	return nil
 }
+
+func UpdateGithubRepoStatsByID(id primitive.ObjectID, stats *models.GithubStats) error {
+	ctx, cancel := utils.GetDBContext()
+	defer cancel()
+
+	collection := config.Database.Collection("githubRepos")
+
+	update := bson.M{
+		"$set": bson.M{
+			"stats": stats,
+		},
+	}
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": id}, update)
+	if err != nil {
+		return fmt.Errorf("error updating stats: %v", err)
+	}
+
+	return nil
+}

@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type GithubStats struct {
+	Stars    int    `bson:"stars" json:"stars"`
+	Forks    int    `bson:"forks" json:"forks"`
+	Language string `bson:"language" json:"language"`
+	ImageURL string `bson:"image_url" json:"image_url"`
+}
+
 type GithubRepo struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	Name        string             `bson:"name,omitempty" json:"name,omitempty"`
@@ -18,4 +25,5 @@ type GithubRepo struct {
 	Instagram   string             `bson:"instagram,omitempty" json:"instagram,omitempty"`
 	Discord     string             `bson:"discord,omitempty" json:"discord,omitempty"`
 	CreatedAt   time.Time          `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
+	Stats       *GithubStats       `bson:"stats,omitempty" json:"stats,omitempty"`
 }

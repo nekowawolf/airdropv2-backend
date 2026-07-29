@@ -9,6 +9,7 @@ import (
 
 	"github.com/nekowawolf/airdropv2/config"
 	"github.com/nekowawolf/airdropv2/models"
+	"github.com/nekowawolf/airdropv2/module"
 	"github.com/robfig/cron/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	tele "gopkg.in/telebot.v3"
@@ -49,8 +50,16 @@ func InitScheduler() {
 		log.Printf("Failed to add cron job (23:00): %v", err)
 	}
 
+	_, err = cronScheduler.AddFunc("0 0,12 * * *", func() {
+		log.Println("Running Github Repo Stats Sync (00:00 & 12:00)...")
+		module.SyncAllGithubRepoStats()
+	})
+	if err != nil {
+		log.Printf("Failed to add cron job for Github sync: %v", err)
+	}
+
 	cronScheduler.Start()
-	log.Println("Scheduler initialized (Monday 03:00 WIB)")
+	log.Println("Scheduler initialized")
 }
 
 func GetNextBackupTime() string {
