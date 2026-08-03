@@ -11,16 +11,47 @@ import (
 )
 
 func invalidateAirdropCache() {
-	utils.InvalidateCache("freeairdrop", "paidairdrop", "allairdrop", "allairdrop_stats")
+	utils.InvalidateCache("airdrops_all", "airdrops_free", "airdrops_paid", "airdrops_stats")
 }
 
-func GetAllAirdropHandler(c *fiber.Ctx) error {
-	data, err := utils.GetOrSetCache("allairdrop", 24*time.Hour, func() ([]interface{}, error) {
-		return module.GetAllAirdrop()
+// PUBLIC ENDPOINTS
+func GetAirdropsPublicHandler(c *fiber.Ctx) error {
+	isPaidStr := c.Query("is_paid")
+	
+	cacheKey := "airdrops_all"
+	var isPaidFilter *bool
+	
+	if isPaidStr == "true" {
+		cacheKey = "airdrops_paid"
+		val := true
+		isPaidFilter = &val
+	} else if isPaidStr == "false" {
+		cacheKey = "airdrops_free"
+		val := false
+		isPaidFilter = &val
+	}
+
+	data, err := utils.GetOrSetCache(cacheKey, 24*time.Hour, func() ([]models.AirdropPublic, error) {
+		adminData, err := module.GetAirdrops(isPaidFilter)
+		if err != nil {
+			return nil, err
+		}
+		
+		publicData := make([]models.AirdropPublic, len(adminData))
+		for i, a := range adminData {
+			publicData[i] = a.AirdropPublic
+		}
+		
+		if publicData == nil {
+			publicData = []models.AirdropPublic{}
+		}
+		
+		return publicData, nil
 	})
+
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to retrieve all Airdrop data",
+			"error": "Failed to retrieve Airdrops data",
 		})
 	}
 
@@ -30,9 +61,9 @@ func GetAllAirdropHandler(c *fiber.Ctx) error {
 	})
 }
 
-func GetAllAirdropStatsHandler(c *fiber.Ctx) error {
-	stats, err := utils.GetOrSetCache("allairdrop_stats", 24*time.Hour, func() (map[string]int, error) {
-		return module.GetAllAirdropStats()
+func GetAirdropsStatsHandler(c *fiber.Ctx) error {
+	stats, err := utils.GetOrSetCache("airdrops_stats", 24*time.Hour, func() (map[string]int, error) {
+		return module.GetAirdropStats()
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -46,14 +77,28 @@ func GetAllAirdropStatsHandler(c *fiber.Ctx) error {
 	})
 }
 
-func GetAirdropFreeHandler(c *fiber.Ctx) error {
-	data, err := utils.GetOrSetCache("freeairdrop", 24*time.Hour, func() ([]models.AirdropFree, error) {
-		return module.GetAllAirdropFree()
-	})
+// ADMIN ENDPOINTS 
+func GetAirdropsAdminHandler(c *fiber.Ctx) error {
+	isPaidStr := c.Query("is_paid")
+	var isPaidFilter *bool
+	
+	if isPaidStr == "true" {
+		val := true
+		isPaidFilter = &val
+	} else if isPaidStr == "false" {
+		val := false
+		isPaidFilter = &val
+	}
+
+	data, err := module.GetAirdrops(isPaidFilter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to retrieve AirdropFree data",
+			"error": "Failed to retrieve Airdrops data",
 		})
+	}
+
+	if data == nil {
+		data = []models.AirdropAdmin{}
 	}
 
 	return c.JSON(fiber.Map{
@@ -62,32 +107,16 @@ func GetAirdropFreeHandler(c *fiber.Ctx) error {
 	})
 }
 
-func GetAirdropPaidHandler(c *fiber.Ctx) error {
-	data, err := utils.GetOrSetCache("paidairdrop", 24*time.Hour, func() ([]models.AirdropPaid, error) {
-		return module.GetAllAirdropPaid()
-	})
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to retrieve AirdropFree data",
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"message": "Data retrieved successfully",
-		"data":    data,
-	})
-}
-
-func GetAllAirdropByIDHandler(c *fiber.Ctx) error {
+func GetAirdropByIDAdminHandler(c *fiber.Ctx) error {
 	id, err := utils.ParseObjectID(c, "id")
 	if err != nil {
 		return err
 	}
 
-	data, err := module.GetAllAirdropByID(id)
+	data, err := module.GetAirdropByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Airdrop not found",
 		})
 	}
 
@@ -97,46 +126,8 @@ func GetAllAirdropByIDHandler(c *fiber.Ctx) error {
 	})
 }
 
-func GetAirdropFreeByIDHandler(c *fiber.Ctx) error {
-	id, err := utils.ParseObjectID(c, "id")
-	if err != nil {
-		return err
-	}
-
-	data, err := module.GetAirdropFreeByID(id)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to retrieve AirdropFree by ID",
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"message": "Data retrieved successfully",
-		"data":    data,
-	})
-}
-
-func GetAirdropPaidByIDHandler(c *fiber.Ctx) error {
-	id, err := utils.ParseObjectID(c, "id")
-	if err != nil {
-		return err
-	}
-
-	data, err := module.GetAirdropPaidByID(id)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to retrieve AirdropPaid by ID",
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"message": "Data retrieved successfully",
-		"data":    data,
-	})
-}
-
-func InsertAirdropFreeHandler(c *fiber.Ctx) error {
-	var reqAirdrop models.AirdropFree
+func InsertAirdropHandler(c *fiber.Ctx) error {
+	var reqAirdrop models.AirdropAdmin
 
 	if err := utils.ParseBody(c, &reqAirdrop); err != nil {
 		return err
@@ -148,38 +139,17 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	insertedID, err := module.InsertAirdropFree(
-		reqAirdrop.Name,
-		reqAirdrop.Task,
-		reqAirdrop.Link,
-		reqAirdrop.Level,
-		reqAirdrop.Status,
-		reqAirdrop.Backed,
-		reqAirdrop.Funds,
-		reqAirdrop.Supply,
-		reqAirdrop.Fdv,
-		reqAirdrop.MarketCap,
-		reqAirdrop.Vesting,
-		reqAirdrop.LinkClaim,
-		reqAirdrop.LinkDiscord,
-		reqAirdrop.LinkTwitter,
-		reqAirdrop.LinkTelegram,
-		reqAirdrop.ImageURL,
-		reqAirdrop.Description,
-		reqAirdrop.LinkGuide,
-		reqAirdrop.Price,
-		reqAirdrop.USDIncome,
-	)
+	insertedID, err := module.InsertAirdrop(reqAirdrop)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to insert AirdropFree",
+			"error": "Failed to insert Airdrop",
 		})
 	}
 
 	if objectID, ok := insertedID.(primitive.ObjectID); ok {
 		invalidateAirdropCache()
 		return c.JSON(fiber.Map{
-			"message":     "AirdropFree inserted successfully",
+			"message":     "Airdrop inserted successfully",
 			"inserted_id": objectID.Hex(),
 		})
 	}
@@ -189,139 +159,22 @@ func InsertAirdropFreeHandler(c *fiber.Ctx) error {
 	})
 }
 
-func InsertAirdropPaidHandler(c *fiber.Ctx) error {
-	var reqAirdrop models.AirdropPaid
-
-	if err := utils.ParseBody(c, &reqAirdrop); err != nil {
-		return err
-	}
-
-	if reqAirdrop.Status == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Status is required",
-		})
-	}
-
-	insertedID, err := module.InsertAirdropPaid(
-		reqAirdrop.Name,
-		reqAirdrop.Task,
-		reqAirdrop.Link,
-		reqAirdrop.Level,
-		reqAirdrop.Status,
-		reqAirdrop.Backed,
-		reqAirdrop.Funds,
-		reqAirdrop.Supply,
-		reqAirdrop.Fdv,
-		reqAirdrop.MarketCap,
-		reqAirdrop.Vesting,
-		reqAirdrop.LinkClaim,
-		reqAirdrop.LinkDiscord,
-		reqAirdrop.LinkTwitter,
-		reqAirdrop.LinkTelegram,
-		reqAirdrop.ImageURL,
-		reqAirdrop.Description,
-		reqAirdrop.LinkGuide,
-		reqAirdrop.Price,
-		reqAirdrop.USDIncome,
-	)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to insert AirdropPaid",
-		})
-	}
-
-	if objectID, ok := insertedID.(primitive.ObjectID); ok {
-		invalidateAirdropCache()
-		return c.JSON(fiber.Map{
-			"message":     "AirdropPaid inserted successfully",
-			"inserted_id": objectID.Hex(),
-		})
-	}
-
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-		"error": "Failed to retrieve inserted ID",
-	})
-}
-
-func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
+func UpdateAirdropHandler(c *fiber.Ctx) error {
 	id, err := utils.ParseObjectID(c, "id")
 	if err != nil {
 		return err
 	}
 
-	var updateData struct {
-		Name        string  `json:"name"`
-		Task        string  `json:"task"`
-		Link        string  `json:"link"`
-		Level       string  `json:"level"`
-		Status      string  `json:"status"`
-		Backed      string  `json:"backed"`
-		Funds       string  `json:"funds"`
-		Supply      string  `json:"supply"`
-		Fdv         string  `json:"fdv"`
-		MarketCap   string  `json:"market_cap"`
-		Vesting     string  `json:"vesting"`
-		LinkClaim   string  `json:"link_claim"`
-		LinkDiscord string  `json:"link_discord"`
-		LinkTwitter string  `json:"link_twitter"`
-		LinkTelegram string `json:"link_telegram"`
-		ImageURL    string  `json:"image_url"`
-		Description string  `json:"description"`
-		LinkGuide   string  `json:"link_guide"`
-		Price       float64 `json:"price"`
-		USDIncome   int     `json:"usd_income"`
-	}
+	var updateData models.AirdropAdmin
 
 	if err := utils.ParseBody(c, &updateData); err != nil {
 		return err
 	}
 
-	currentAirdrop, err := module.GetAllAirdropByID(id)
+	err = module.UpdateAirdropByID(id, updateData)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	var finalStatus string
-	if updateData.Status == "" {
-		if freeAirdrop, ok := currentAirdrop.(models.AirdropFree); ok {
-			finalStatus = freeAirdrop.Status
-		} else if paidAirdrop, ok := currentAirdrop.(models.AirdropPaid); ok {
-			finalStatus = paidAirdrop.Status
-		} else {
-			finalStatus = updateData.Status
-		}
-	} else {
-		finalStatus = updateData.Status
-	}
-
-	err = module.UpdateAllAirdropByID(
-		id,
-		updateData.Name,
-		updateData.Task,
-		updateData.Link,
-		updateData.Level,
-		finalStatus,
-		updateData.Backed,
-		updateData.Funds,
-		updateData.Supply,
-		updateData.Fdv,
-		updateData.MarketCap,
-		updateData.Vesting,
-		updateData.LinkClaim,
-		updateData.LinkDiscord,
-		updateData.LinkTwitter,
-		updateData.LinkTelegram,
-		updateData.ImageURL,
-		updateData.Description,
-		updateData.LinkGuide,
-		updateData.Price,
-		updateData.USDIncome,
-	)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": err.Error(),
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update Airdrop by ID: " + err.Error(),
 		})
 	}
 
@@ -331,149 +184,13 @@ func UpdateAllAirdropByIDHandler(c *fiber.Ctx) error {
 	})
 }
 
-func UpdateAirdropFreeByIDHandler(c *fiber.Ctx) error {
+func DeleteAirdropHandler(c *fiber.Ctx) error {
 	id, err := utils.ParseObjectID(c, "id")
 	if err != nil {
 		return err
 	}
 
-	var updateData struct {
-		Name        string  `json:"name"`
-		Task        string  `json:"task"`
-		Link        string  `json:"link"`
-		Level       string  `json:"level"`
-		Status      string  `json:"status"`
-		Backed      string  `json:"backed"`
-		Funds       string  `json:"funds"`
-		Supply      string  `json:"Supply"`
-		Fdv         string  `json:"fdv"`
-		MarketCap   string  `json:"market_cap"`
-		Vesting     string  `json:"vesting"`
-		LinkClaim   string  `json:"link_claim"`
-		LinkDiscord string  `json:"link_discord"`
-		LinkTwitter string  `json:"link_twitter"`
-		LinkTelegram string `json:"link_telegram"`
-		ImageURL    string  `json:"image_url"`
-		Description string  `json:"description"`
-		LinkGuide   string  `json:"link_guide"`
-		Price       float64 `json:"price"`
-		USDIncome   int     `json:"usd_income"`
-	}
-
-	if err := utils.ParseBody(c, &updateData); err != nil {
-		return err
-	}
-
-	err = module.UpdateAirdropFreeByID(
-		id,
-		updateData.Name,
-		updateData.Task,
-		updateData.Link,
-		updateData.Level,
-		updateData.Status,
-		updateData.Backed,
-		updateData.Funds,
-		updateData.Supply,
-		updateData.Fdv,
-		updateData.MarketCap,
-		updateData.Vesting,
-		updateData.LinkClaim,
-		updateData.LinkDiscord,
-		updateData.LinkTwitter,
-		updateData.LinkTelegram,
-		updateData.ImageURL,
-		updateData.Description,
-		updateData.LinkGuide,
-		updateData.Price,
-		updateData.USDIncome,
-	)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update AirdropFree by ID",
-		})
-	}
-
-	invalidateAirdropCache()
-	return c.JSON(fiber.Map{
-		"message": "AirdropFree updated successfully",
-	})
-}
-
-func UpdateAirdropPaidByIDHandler(c *fiber.Ctx) error {
-	id, err := utils.ParseObjectID(c, "id")
-	if err != nil {
-		return err
-	}
-
-	var updateData struct {
-		Name        string  `json:"name"`
-		Task        string  `json:"task"`
-		Link        string  `json:"link"`
-		Level       string  `json:"level"`
-		Status      string  `json:"status"`
-		Backed      string  `json:"backed"`
-		Funds       string  `json:"funds"`
-		Supply      string  `json:"Supply"`
-		Fdv         string  `json:"fdv"`
-		MarketCap   string  `json:"market_cap"`
-		Vesting     string  `json:"vesting"`
-		LinkClaim   string  `json:"link_claim"`
-		LinkDiscord string  `json:"link_discord"`
-		LinkTwitter string  `json:"link_twitter"`
-		LinkTelegram string `json:"link_telegram"`
-		ImageURL    string  `json:"image_url"`
-		Description string  `json:"description"`
-		LinkGuide   string  `json:"link_guide"`
-		Price       float64 `json:"price"`
-		USDIncome   int     `json:"usd_income"`
-	}
-
-	if err := utils.ParseBody(c, &updateData); err != nil {
-		return err
-	}
-
-	err = module.UpdateAirdropPaidByID(
-		id,
-		updateData.Name,
-		updateData.Task,
-		updateData.Link,
-		updateData.Level,
-		updateData.Status,
-		updateData.Backed,
-		updateData.Funds,
-		updateData.Supply,
-		updateData.Fdv,
-		updateData.MarketCap,
-		updateData.Vesting,
-		updateData.LinkClaim,
-		updateData.LinkDiscord,
-		updateData.LinkTwitter,
-		updateData.LinkTelegram,
-		updateData.ImageURL,
-		updateData.Description,
-		updateData.LinkGuide,
-		updateData.Price,
-		updateData.USDIncome,
-	)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update AirdropPaid by ID",
-		})
-	}
-
-	invalidateAirdropCache()
-	return c.JSON(fiber.Map{
-		"message": "AirdropPaid updated successfully",
-	})
-}
-
-func DeleteAllAirdropByIDHandler(c *fiber.Ctx) error {
-	id, err := utils.ParseObjectID(c, "id")
-	if err != nil {
-		return err
-	}
-
-	err = module.DeleteAllAirdropByID(id)
+	err = module.DeleteAirdropByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": err.Error(),
@@ -483,43 +200,5 @@ func DeleteAllAirdropByIDHandler(c *fiber.Ctx) error {
 	invalidateAirdropCache()
 	return c.JSON(fiber.Map{
 		"message": "Airdrop deleted successfully",
-	})
-}
-
-func DeleteAirdropFreeByIDHandler(c *fiber.Ctx) error {
-	id, err := utils.ParseObjectID(c, "id")
-	if err != nil {
-		return err
-	}
-
-	err = module.DeleteAirdropFreeByID(id)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete AirdropFree by ID",
-		})
-	}
-
-	invalidateAirdropCache()
-	return c.JSON(fiber.Map{
-		"message": "AirdropFree deleted successfully",
-	})
-}
-
-func DeleteAirdropPaidByIDHandler(c *fiber.Ctx) error {
-	id, err := utils.ParseObjectID(c, "id")
-	if err != nil {
-		return err
-	}
-
-	err = module.DeleteAirdropPaidByID(id)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete AirdropPaid by ID",
-		})
-	}
-
-	invalidateAirdropCache()
-	return c.JSON(fiber.Map{
-		"message": "AirdropPaid deleted successfully",
 	})
 }

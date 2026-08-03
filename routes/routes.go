@@ -18,10 +18,8 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/portfolio", controllers.GetPortfolio)
 	
 	// Public airdrop routes
-	api.Get("/freeairdrop", controllers.GetAirdropFreeHandler)
-	api.Get("/paidairdrop", controllers.GetAirdropPaidHandler)
-	api.Get("/allairdrop", controllers.GetAllAirdropHandler)
-	api.Get("/allairdrop/stats", controllers.GetAllAirdropStatsHandler)
+	api.Get("/airdrops", controllers.GetAirdropsPublicHandler)
+	api.Get("/airdrops/stats", controllers.GetAirdropsStatsHandler)
 
 	// Public crypto community routes
 	api.Get("/cryptocommunity", controllers.GetAllCryptoCommunity)
@@ -51,17 +49,11 @@ func SetupRoutes(app *fiber.App) {
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
 	// Protected airdrop routes
-	protected.Get("/allairdrop/:id", controllers.GetAllAirdropByIDHandler)
-	protected.Get("/freeairdrop/:id", controllers.GetAirdropFreeByIDHandler)
-	protected.Get("/paidairdrop/:id", controllers.GetAirdropPaidByIDHandler)
-	protected.Post("/freeairdrop", controllers.InsertAirdropFreeHandler)
-	protected.Post("/paidairdrop", controllers.InsertAirdropPaidHandler)
-	protected.Put("/allairdrop/:id", controllers.UpdateAllAirdropByIDHandler)
-	protected.Put("/freeairdrop/:id", controllers.UpdateAirdropFreeByIDHandler)
-    protected.Put("/paidairdrop/:id", controllers.UpdateAirdropPaidByIDHandler)
-	protected.Delete("/allairdrop/:id", controllers.DeleteAllAirdropByIDHandler)
-	protected.Delete("/freeairdrop/:id", controllers.DeleteAirdropFreeByIDHandler)
-    protected.Delete("/paidairdrop/:id", controllers.DeleteAirdropPaidByIDHandler)
+	protected.Get("/admin/airdrops", controllers.GetAirdropsAdminHandler)
+	protected.Get("/admin/airdrops/:id", controllers.GetAirdropByIDAdminHandler)
+	protected.Post("/admin/airdrops", controllers.InsertAirdropHandler)
+	protected.Put("/admin/airdrops/:id", controllers.UpdateAirdropHandler)
+	protected.Delete("/admin/airdrops/:id", controllers.DeleteAirdropHandler)
 
 	// Protected crypto community routes
 	protected.Get("/cryptocommunity/:id", controllers.GetCryptoCommunityByID)
