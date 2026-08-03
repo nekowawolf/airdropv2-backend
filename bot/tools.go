@@ -32,7 +32,7 @@ type ProjectEndpoint struct {
 }
 
 var projectEndpoints = []ProjectEndpoint{
-	{"airdrop", "Airdrop", "/allairdrop", "🪂"},
+	{"airdrop", "Airdrop", "/airdrops", "🪂"},
 	{"cryptocommunity", "Crypto Community", "/cryptocommunity", "🪙"},
 	{"aitools", "AI Tools", "/aitools", "🤖"},
 	{"web3tools", "Web3 Tools", "/web3tools", "🌐"},
@@ -73,7 +73,7 @@ func handleSpeedTest(c tele.Context) error {
 	if err != nil {
 		return c.Send(fmt.Sprintf("❌ Configuration Error: %v", err))
 	}
-	endpoints := []string{"/allairdrop", "/profilelink", "/postslink", "/cryptocommunity", "/price", "/portfolio", "/aitools", "/web3tools", "/githubrepo"}
+	endpoints := []string{"/airdrops", "/profilelink", "/postslink", "/cryptocommunity", "/price", "/portfolio", "/aitools", "/web3tools", "/githubrepo"}
 
 	results := "⚡ API Speed Test Results\n\n"
 	allNormal := true
@@ -174,12 +174,7 @@ func handleExecuteImageCheck(c tele.Context) error {
 		var data struct {
 			Data []struct {
 				Name          string `json:"name"`
-				Image         string `json:"image"`
-				Logo          string `json:"logo"`
 				ImageURL      string `json:"image_url"`
-				ImgURL        string `json:"img_url"`
-				ImageURICamel string `json:"imageUrl"`
-				ImgURICamel   string `json:"imgURL"`
 			} `json:"data"`
 		}
 
@@ -193,12 +188,7 @@ func handleExecuteImageCheck(c tele.Context) error {
 
 		var blockDetails string
 		for _, item := range data.Data {
-			imgURL := item.Image
-			if imgURL == "" { imgURL = item.Logo }
-			if imgURL == "" { imgURL = item.ImageURL }
-			if imgURL == "" { imgURL = item.ImgURL }
-			if imgURL == "" { imgURL = item.ImageURICamel }
-			if imgURL == "" { imgURL = item.ImgURICamel }
+			imgURL := item.ImageURL
 			if imgURL == "" { continue }
 
 			req, err := http.NewRequest("GET", imgURL, nil)
@@ -302,17 +292,13 @@ func handleExecuteLinkCheck(c tele.Context) error {
 			Data []struct {
 				Name         string `json:"name"`
 				Link         string `json:"link"`
-				LinkURL      string `json:"link_url"`
 				Website      string `json:"website"`
-				LinkURLCamel string `json:"linkURL"`
 				RepoURL      string `json:"repo_url"`
 				Twitter      string `json:"twitter"`
 				Discord      string `json:"discord"`
 				Telegram     string `json:"telegram"`
-				LinkTwitter  string `json:"link_twitter"`
-				LinkDiscord  string `json:"link_discord"`
-				LinkTelegram string `json:"link_telegram"`
-				LinkClaim    string `json:"link_claim"`
+				ClaimURL     string `json:"claim_url"`
+				GuideURL     string `json:"guide_url"`
 				VideoURL     string `json:"video_url"`
 				Instagram    string `json:"instagram"`
 				Youtube      string `json:"youtube"`
@@ -330,9 +316,7 @@ func handleExecuteLinkCheck(c tele.Context) error {
 		var blockDetails string
 		for _, item := range data.Data {
 			primaryLink := item.Link
-			if primaryLink == "" { primaryLink = item.LinkURL }
 			if primaryLink == "" { primaryLink = item.Website }
-			if primaryLink == "" { primaryLink = item.LinkURLCamel }
 
 			linksToCheck := []struct {
 				Name string
@@ -343,10 +327,8 @@ func handleExecuteLinkCheck(c tele.Context) error {
 				{"Twitter", item.Twitter},
 				{"Discord", item.Discord},
 				{"Telegram", item.Telegram},
-				{"Twitter", item.LinkTwitter},
-				{"Discord", item.LinkDiscord},
-				{"Telegram", item.LinkTelegram},
-				{"Claim", item.LinkClaim},
+				{"Claim", item.ClaimURL},
+				{"Guide", item.GuideURL},
 				{"Video", item.VideoURL},
 				{"Instagram", item.Instagram},
 				{"Youtube", item.Youtube},

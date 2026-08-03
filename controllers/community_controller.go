@@ -72,8 +72,8 @@ func InsertCryptoCommunity(c *fiber.Ctx) error {
 		req.Name,
 		req.Platforms,
 		req.Category,
-		req.ImgURL,
-		req.LinkURL,
+		req.ImageURL,
+		req.Link,
 	)
 
 	if insertedID == nil {
@@ -105,8 +105,8 @@ func UpdateCryptoCommunityByID(c *fiber.Ctx) error {
 		Name:      req.Name,
 		Platforms: req.Platforms,
 		Category:  req.Category,
-		ImgURL:    req.ImgURL,
-		LinkURL:   req.LinkURL,
+		ImageURL:  req.ImageURL,
+		Link:      req.Link,
 	}
 
 	updatedCommunity, err := module.UpdateCryptoCommunityByID(id, updateData)

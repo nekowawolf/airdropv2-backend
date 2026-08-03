@@ -24,6 +24,6 @@ type GithubRepo struct {
 	Twitter     string             `bson:"twitter,omitempty" json:"twitter,omitempty"`
 	Instagram   string             `bson:"instagram,omitempty" json:"instagram,omitempty"`
 	Discord     string             `bson:"discord,omitempty" json:"discord,omitempty"`
-	CreatedAt   time.Time          `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
+	CreatedAt   time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	Stats       *GithubStats       `bson:"stats,omitempty" json:"stats,omitempty"`
 }

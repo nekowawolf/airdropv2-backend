@@ -16,8 +16,8 @@ func InsertCryptoCommunity(name, platforms, category, imgURL, linkURL string) in
         Name:      name,
         Platforms: platforms,
         Category:  category,
-        ImgURL:    imgURL,
-        LinkURL:   linkURL,
+        ImageURL:  imgURL,
+        Link:      linkURL,
         CreatedAt: time.Now(),
     }
 
@@ -163,8 +163,8 @@ func UpdateCryptoCommunityByID(id primitive.ObjectID, updateData models.CryptoCo
 			"name":       updateData.Name,
 			"platforms":  updateData.Platforms,
 			"category":   updateData.Category,
-			"img_url":    updateData.ImgURL,
-			"link_url":   updateData.LinkURL,
+			"image_url":  updateData.ImageURL,
+			"link":       updateData.Link,
 		},
 	}
 
