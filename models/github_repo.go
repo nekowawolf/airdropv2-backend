@@ -6,10 +6,11 @@ import (
 )
 
 type GithubStats struct {
-	Stars    int    `bson:"stars" json:"stars"`
-	Forks    int    `bson:"forks" json:"forks"`
-	Language string `bson:"language" json:"language"`
-	ImageURL string `bson:"image_url" json:"image_url"`
+	Stars      int       `bson:"stars" json:"stars"`
+	Forks      int       `bson:"forks" json:"forks"`
+	Language   string    `bson:"language" json:"language"`
+	ImageURL   string    `bson:"image_url" json:"image_url"`
+	LastUpdate time.Time `bson:"last_update" json:"last_update"`
 }
 
 type GithubRepo struct {

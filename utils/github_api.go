@@ -14,9 +14,10 @@ import (
 var useBackupTokenUntil int64 = 0
 
 type githubRepoResponse struct {
-	StargazersCount int    `json:"stargazers_count"`
-	ForksCount      int    `json:"forks_count"`
-	Language        string `json:"language"`
+	StargazersCount int       `json:"stargazers_count"`
+	ForksCount      int       `json:"forks_count"`
+	Language        string    `json:"language"`
+	PushedAt        time.Time `json:"pushed_at"`
 	Owner           struct {
 		AvatarURL string `json:"avatar_url"`
 	} `json:"owner"`
@@ -90,10 +91,11 @@ func FetchGithubRepoStats(owner, repoName string) (*models.GithubStats, error) {
 	}
 
 	stats := &models.GithubStats{
-		Stars:    data.StargazersCount,
-		Forks:    data.ForksCount,
-		Language: data.Language,
-		ImageURL: data.Owner.AvatarURL,
+		Stars:      data.StargazersCount,
+		Forks:      data.ForksCount,
+		Language:   data.Language,
+		ImageURL:   data.Owner.AvatarURL,
+		LastUpdate: data.PushedAt,
 	}
 
 	return stats, nil
