@@ -13,6 +13,11 @@ type GithubStats struct {
 	LastUpdate time.Time `bson:"last_update" json:"last_update"`
 }
 
+type AddedByInfo struct {
+	Name string `bson:"name,omitempty" json:"name,omitempty"`
+	URL  string `bson:"url,omitempty" json:"url,omitempty"`
+}
+
 type GithubRepo struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	Name        string             `bson:"name,omitempty" json:"name,omitempty"`
@@ -25,6 +30,7 @@ type GithubRepo struct {
 	Twitter     string             `bson:"twitter,omitempty" json:"twitter,omitempty"`
 	Instagram   string             `bson:"instagram,omitempty" json:"instagram,omitempty"`
 	Discord     string             `bson:"discord,omitempty" json:"discord,omitempty"`
-	CreatedAt   time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	Stats       *GithubStats       `bson:"stats,omitempty" json:"stats,omitempty"`
+	AddedBy     *AddedByInfo       `bson:"added_by,omitempty" json:"added_by,omitempty"`
+	CreatedAt   time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 }
