@@ -45,6 +45,9 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/postslink", controllers.GetAllPosts)
 	api.Get("/postslink/stats", controllers.GetPostStats)
 
+	// Public repo submission routes
+	api.Post("/repo-submissions", controllers.SubmitRepo)
+
 	// ==================== PROTECTED ROUTES ====================
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
@@ -120,4 +123,8 @@ func SetupRoutes(app *fiber.App) {
 	// Protected Message routes
 	protected.Get("/message", controllers.GetMessage)
 	protected.Put("/message", controllers.UpdateMessage)
+
+	// Protected repo submission routes
+	protected.Get("/repo-submissions", controllers.GetAllRepoSubmissions)
+	protected.Delete("/repo-submissions/:id", controllers.DeleteRepoSubmission)
 }
