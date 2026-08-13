@@ -36,6 +36,7 @@ func SetupRoutes(app *fiber.App) {
 	// Public Github Repo routes
 	api.Get("/githubrepo", controllers.GetAllGithubRepos)
 	api.Get("/githubrepo/stats", controllers.GetGithubRepoStats)
+	api.Get("/githubrepo/:id/history", controllers.GetGithubRepoHistory)
 
 	// Public price routes	
 	api.Get("/price", controllers.PriceHandler)

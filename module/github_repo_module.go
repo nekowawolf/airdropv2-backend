@@ -8,6 +8,7 @@ import (
 	"github.com/nekowawolf/airdropv2/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func InsertGithubRepo(name, description, category, repoURL, owner, repoName, website, twitter, instagram, discord string, addedBy *models.AddedByInfo) interface{} {
@@ -204,4 +205,49 @@ func UpdateGithubRepoStatsByID(id primitive.ObjectID, stats *models.GithubStats)
 	}
 
 	return nil
+}
+
+func InsertGithubRepoStatsHistory(repoID primitive.ObjectID, stars int, forks int, snapshotTime time.Time) error {
+	ctx, cancel := utils.GetDBContext()
+	defer cancel()
+
+	collection := config.Database.Collection("githubRepoStatsHistory")
+
+	snapshot := models.GithubRepoStatsHistory{
+		ID:        primitive.NewObjectID(),
+		RepoID:    repoID,
+		Stars:     stars,
+		Forks:     forks,
+		Timestamp: snapshotTime,
+	}
+
+	_, err := collection.InsertOne(ctx, snapshot)
+	if err != nil {
+		return fmt.Errorf("error inserting github repo history: %v", err)
+	}
+
+	return nil
+}
+
+func GetGithubRepoHistoryByTargetTime(repoID primitive.ObjectID, targetTime time.Time) (*models.GithubRepoStatsHistory, error) {
+	ctx, cancel := utils.GetDBContext()
+	defer cancel()
+
+	collection := config.Database.Collection("githubRepoStatsHistory")
+	filter := bson.M{
+		"repo_id": repoID,
+		"timestamp": bson.M{
+			"$lte": targetTime,
+		},
+	}
+
+	opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+
+	var result models.GithubRepoStatsHistory
+	err := collection.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }

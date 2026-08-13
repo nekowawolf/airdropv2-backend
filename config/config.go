@@ -41,6 +41,7 @@ func init() {
     fmt.Println("Successfully connected to MongoDB")
 
     createTTLIndex(Database)
+    createGithubRepoHistoryIndexes(Database)
 }
 
 func createTTLIndex(db *mongo.Database) {
@@ -60,5 +61,33 @@ func createTTLIndex(db *mongo.Database) {
         fmt.Printf("Failed to create TTL index: %v\n", err)
     } else {
         fmt.Println("TTL index for refresh_tokens created (expiresAt)")
+    }
+}
+
+func createGithubRepoHistoryIndexes(db *mongo.Database) {
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+    collection := db.Collection("githubRepoStatsHistory")
+
+    compoundIndex := mongo.IndexModel{
+        Keys: bson.D{
+            {Key: "repo_id", Value: 1},
+            {Key: "timestamp", Value: -1},
+        },
+        Options: options.Index().SetUnique(true),
+    }
+
+    ttlIndex := mongo.IndexModel{
+        Keys: bson.M{"timestamp": 1},
+        Options: options.Index().
+            SetExpireAfterSeconds(45 * 24 * 60 * 60), 
+    }
+
+    _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{compoundIndex, ttlIndex})
+    if err != nil {
+        fmt.Printf("Failed to create indexes for githubRepoStatsHistory: %v\n", err)
+    } else {
+        fmt.Println("Indexes for githubRepoStatsHistory created successfully")
     }
 }

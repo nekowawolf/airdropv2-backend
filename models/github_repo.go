@@ -34,3 +34,11 @@ type GithubRepo struct {
 	AddedBy     *AddedByInfo       `bson:"added_by,omitempty" json:"added_by,omitempty"`
 	CreatedAt   time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 }
+
+type GithubRepoStatsHistory struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	RepoID    primitive.ObjectID `bson:"repo_id" json:"repo_id"`
+	Stars     int                `bson:"stars" json:"stars"`
+	Forks     int                `bson:"forks" json:"forks"`
+	Timestamp time.Time          `bson:"timestamp" json:"timestamp"`
+}

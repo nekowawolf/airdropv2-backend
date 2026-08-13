@@ -2,12 +2,14 @@ package module
 
 import (
 	"log"
+	"time"
 
 	"github.com/nekowawolf/airdropv2/utils"
 )
 
 func SyncAllGithubRepoStats() {
 	log.Println("Starting Github Repo Stats Sync...")
+	snapshotTime := time.Now().UTC()
 	
 	repos, err := GetAllGithubRepos()
 	if err != nil {
@@ -37,10 +39,16 @@ func SyncAllGithubRepoStats() {
 			continue
 		}
 
+		err = InsertGithubRepoStatsHistory(repo.ID, stats.Stars, stats.Forks, snapshotTime)
+		if err != nil {
+			log.Printf("Failed to insert history for %s/%s: %v\n", repo.Owner, repo.RepoName, err)
+		}
+
 		successCount++
 	}
 
 	log.Printf("Github Repo Stats Sync completed. Success: %d, Failed: %d\n", successCount, failCount)
 
 	utils.InvalidateCache("githubrepo", "githubrepo_stats")
+	utils.InvalidateCachePrefix("githubrepo_history_")
 }

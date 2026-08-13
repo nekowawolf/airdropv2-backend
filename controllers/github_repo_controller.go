@@ -153,3 +153,94 @@ func DeleteGithubRepoByID(c *fiber.Ctx) error {
 		"message": "GithubRepo deleted successfully",
 	})
 }
+
+func GetGithubRepoHistory(c *fiber.Ctx) error {
+	id, err := utils.ParseObjectID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	period := c.Query("period", "month")
+	var targetTime time.Time
+	now := time.Now().UTC()
+
+	switch period {
+	case "today":
+		targetTime = now.Add(-24 * time.Hour)
+	case "week":
+		targetTime = now.Add(-7 * 24 * time.Hour)
+	case "month":
+		targetTime = now.Add(-30 * 24 * time.Hour)
+	default:
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid period. Must be 'today', 'week', or 'month'",
+		})
+	}
+
+	cacheKey := "githubrepo_history_" + id.Hex() + "_" + period
+
+	type HistoryResponse struct {
+		Period    string `json:"period"`
+		Available bool   `json:"available"`
+		Current   any    `json:"current"`
+		Previous  any    `json:"previous"`
+		Growth    any    `json:"growth"`
+	}
+
+	responseData, err := utils.GetOrSetCache(cacheKey, 24*time.Hour, func() (HistoryResponse, error) {
+		repo, err := module.GetGithubRepoByID(id)
+		if err != nil {
+			return HistoryResponse{}, err
+		}
+
+		currentStats := map[string]int{
+			"stars": 0,
+			"forks": 0,
+		}
+		if repo.Stats != nil {
+			currentStats["stars"] = repo.Stats.Stars
+			currentStats["forks"] = repo.Stats.Forks
+		}
+
+		history, _ := module.GetGithubRepoHistoryByTargetTime(id, targetTime)
+		
+		if history == nil {
+			return HistoryResponse{
+				Period:    period,
+				Available: false,
+				Current:   currentStats,
+				Previous:  nil,
+				Growth:    nil,
+			}, nil
+		}
+
+		previousStats := map[string]int{
+			"stars": history.Stars,
+			"forks": history.Forks,
+		}
+
+		growthStats := map[string]int{
+			"stars": currentStats["stars"] - history.Stars,
+			"forks": currentStats["forks"] - history.Forks,
+		}
+
+		return HistoryResponse{
+			Period:    period,
+			Available: true,
+			Current:   currentStats,
+			Previous:  previousStats,
+			Growth:    growthStats,
+		}, nil
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "GithubRepo not found",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "History retrieved successfully",
+		"data":    responseData,
+	})
+}
