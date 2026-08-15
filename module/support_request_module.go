@@ -1,0 +1,68 @@
+package module
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/nekowawolf/airdropv2/config"
+	"github.com/nekowawolf/airdropv2/models"
+	"github.com/nekowawolf/airdropv2/utils"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func InsertSupportRequest(req *models.SupportRequestRequest) interface{} {
+	newRequest := models.SupportRequest{
+		ID:        primitive.NewObjectID(),
+		Name:      req.Name,
+		URL:       req.URL,
+		Platform:  req.Platform,
+		CreatedAt: time.Now(),
+	}
+
+	insertedID, err := InsertDocument("supportRequests", newRequest)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	return insertedID
+}
+
+func GetAllSupportRequests() ([]models.SupportRequest, error) {
+	ctx, cancel := utils.GetDBContext()
+	defer cancel()
+
+	collection := config.Database.Collection("supportRequests")
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving data: %v", err)
+	}
+	defer cursor.Close(ctx)
+
+	var requests []models.SupportRequest
+	if err = cursor.All(ctx, &requests); err != nil {
+		return nil, fmt.Errorf("error decoding data: %v", err)
+	}
+
+	return requests, nil
+}
+
+func DeleteSupportRequestByID(id primitive.ObjectID) error {
+	ctx, cancel := utils.GetDBContext()
+	defer cancel()
+
+	collection := config.Database.Collection("supportRequests")
+	filter := bson.M{"_id": id}
+
+	result, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("error deleting support request for ID %s: %s", id.Hex(), err.Error())
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("no support request found with ID %s", id.Hex())
+	}
+
+	return nil
+}

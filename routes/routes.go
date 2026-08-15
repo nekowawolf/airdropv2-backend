@@ -49,6 +49,12 @@ func SetupRoutes(app *fiber.App) {
 	// Public repo submission routes
 	api.Post("/repo-submissions", controllers.SubmitRepo)
 
+	// Public support request routes
+	api.Post("/support-requests", controllers.SubmitSupportRequest)
+
+	// Public supporter routes
+	api.Get("/supporters", controllers.GetAllSupporters)
+
 	// ==================== PROTECTED ROUTES ====================
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
@@ -128,4 +134,14 @@ func SetupRoutes(app *fiber.App) {
 	// Protected repo submission routes
 	protected.Get("/repo-submissions", controllers.GetAllRepoSubmissions)
 	protected.Delete("/repo-submissions/:id", controllers.DeleteRepoSubmission)
+
+	// Protected support request routes
+	protected.Get("/support-requests", controllers.GetAllSupportRequests)
+	protected.Delete("/support-requests/:id", controllers.DeleteSupportRequest)
+
+	// Protected supporter routes
+	protected.Get("/supporters/:id", controllers.GetSupporterByID)
+	protected.Post("/supporters", controllers.InsertSupporter)
+	protected.Put("/supporters/:id", controllers.UpdateSupporterByID)
+	protected.Delete("/supporters/:id", controllers.DeleteSupporterByID)
 }
