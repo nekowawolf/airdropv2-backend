@@ -244,3 +244,108 @@ func GetGithubRepoHistory(c *fiber.Ctx) error {
 		"data":    responseData,
 	})
 }
+
+func GetGithubRepoDetails(c *fiber.Ctx) error {
+	id, err := utils.ParseObjectID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	cacheKey := "githubrepo_details_" + id.Hex()
+
+	responseData, err := utils.GetOrSetCache(cacheKey, 24*time.Hour, func() (models.GithubRepoDetailsData, error) {
+		repo, err := module.GetGithubRepoByID(id)
+		if err != nil {
+			return models.GithubRepoDetailsData{}, err
+		}
+
+		repoData, mdFiles, err := utils.FetchGithubRepoDetails(repo.Owner, repo.RepoName)
+		if err != nil {
+			return models.GithubRepoDetailsData{}, err
+		}
+
+		return models.GithubRepoDetailsData{
+			RepoData: repoData,
+			MdFiles:  mdFiles,
+		}, nil
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch Github Repo details: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Details retrieved successfully",
+		"data":    responseData,
+	})
+}
+
+func GetGithubRepoCommits(c *fiber.Ctx) error {
+	id, err := utils.ParseObjectID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	perPage := c.Query("per_page", "8")
+	cacheKey := "githubrepo_commits_" + id.Hex() + "_" + perPage
+
+	responseData, err := utils.GetOrSetCache(cacheKey, 1*time.Hour, func() ([]interface{}, error) {
+		repo, err := module.GetGithubRepoByID(id)
+		if err != nil {
+			return nil, err
+		}
+
+		commits, err := utils.FetchGithubCommits(repo.Owner, repo.RepoName, perPage)
+		if err != nil {
+			return nil, err
+		}
+
+		return commits, nil
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch Github Repo commits: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Commits retrieved successfully",
+		"data":    responseData,
+	})
+}
+
+func GetGithubRepoCommitsByOwnerRepo(c *fiber.Ctx) error {
+	owner := c.Params("owner")
+	repoName := c.Params("repoName")
+	
+	if owner == "" || repoName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Owner and repoName are required",
+		})
+	}
+
+	perPage := c.Query("per_page", "8")
+	cacheKey := "githubrepo_commits_raw_" + owner + "_" + repoName + "_" + perPage
+
+	responseData, err := utils.GetOrSetCache(cacheKey, 1*time.Hour, func() ([]interface{}, error) {
+		commits, err := utils.FetchGithubCommits(owner, repoName, perPage)
+		if err != nil {
+			return nil, err
+		}
+		return commits, nil
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch Github Repo commits: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Commits retrieved successfully",
+		"data":    responseData,
+	})
+}

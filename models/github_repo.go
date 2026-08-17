@@ -42,3 +42,13 @@ type GithubRepoStatsHistory struct {
 	Forks     int                `bson:"forks" json:"forks"`
 	Timestamp time.Time          `bson:"timestamp" json:"timestamp"`
 }
+
+type MdFile struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}
+
+type GithubRepoDetailsData struct {
+	RepoData map[string]interface{} `json:"repoData"`
+	MdFiles  []MdFile               `json:"mdFiles"`
+}

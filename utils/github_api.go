@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/nekowawolf/airdropv2/models"
@@ -23,9 +25,7 @@ type githubRepoResponse struct {
 	} `json:"owner"`
 }
 
-func FetchGithubRepoStats(owner, repoName string) (*models.GithubStats, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repoName)
-	
+func doGithubRequest(url string) ([]byte, error) {
 	tokens := []string{os.Getenv("GITHUB_TOKEN"), os.Getenv("GITHUB_TOKEN2")}
 	var validTokens []string
 	for _, t := range tokens {
@@ -77,10 +77,20 @@ func FetchGithubRepoStats(owner, repoName string) (*models.GithubStats, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("github api returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("github api returned status %d for url %s", resp.StatusCode, url)
 	}
 
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func FetchGithubRepoStats(owner, repoName string) (*models.GithubStats, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repoName)
+	body, err := doGithubRequest(url)
 	if err != nil {
 		return nil, err
 	}
@@ -99,4 +109,198 @@ func FetchGithubRepoStats(owner, repoName string) (*models.GithubStats, error) {
 	}
 
 	return stats, nil
+}
+
+func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []models.MdFile, error) {
+	repoUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repoName)
+	repoBody, err := doGithubRequest(repoUrl)
+	if err != nil {
+		return nil, nil, err
+	}
+	
+	var repoData map[string]interface{}
+	if err := json.Unmarshal(repoBody, &repoData); err != nil {
+		return nil, nil, err
+	}
+
+	type ContentItem struct {
+		Name        string `json:"name"`
+		Type        string `json:"type"`
+		DownloadURL string `json:"download_url"`
+	}
+
+	var rootContents []ContentItem
+	var githubContents []ContentItem
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		rootUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents", owner, repoName)
+		body, err := doGithubRequest(rootUrl)
+		if err == nil {
+			json.Unmarshal(body, &rootContents)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		githubUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/.github", owner, repoName)
+		body, err := doGithubRequest(githubUrl)
+		if err == nil {
+			json.Unmarshal(body, &githubContents)
+		}
+	}()
+
+	wg.Wait()
+
+	allContents := append(rootContents, githubContents...)
+
+	var filesToDownload []ContentItem
+	for _, item := range allContents {
+		if item.Type == "file" && item.DownloadURL != "" {
+			lowerName := strings.ToLower(item.Name)
+			if strings.HasSuffix(lowerName, ".md") || strings.HasSuffix(lowerName, ".mdx") || lowerName == "license" || lowerName == "code_of_conduct" {
+				filesToDownload = append(filesToDownload, item)
+			}
+		}
+	}
+
+	var downloadedMdFiles []models.MdFile
+	var mu sync.Mutex
+
+	var downloadWg sync.WaitGroup
+	for _, file := range filesToDownload {
+		downloadWg.Add(1)
+		go func(f ContentItem) {
+			defer downloadWg.Done()
+			
+			req, err := http.NewRequest("GET", f.DownloadURL, nil)
+			if err != nil {
+				return
+			}
+			
+			tokens := []string{os.Getenv("GITHUB_TOKEN"), os.Getenv("GITHUB_TOKEN2")}
+			var validTokens []string
+			for _, t := range tokens {
+				if t != "" {
+					validTokens = append(validTokens, t)
+				}
+			}
+			
+			currentTokenIndex := 0
+			if len(validTokens) > 0 {
+				if len(validTokens) > 1 && time.Now().UnixMilli() < useBackupTokenUntil {
+					currentTokenIndex = 1
+				}
+				req.Header.Set("Authorization", "Bearer "+validTokens[currentTokenIndex])
+			}
+			
+			client := &http.Client{Timeout: 10 * time.Second}
+			resp, err := client.Do(req)
+			if err != nil {
+				return
+			}
+			
+			if (resp.StatusCode == 403 || resp.StatusCode == 401) && len(validTokens) > 1 {
+				resp.Body.Close()
+				
+				if currentTokenIndex == 0 {
+					useBackupTokenUntil = time.Now().UnixMilli() + 5*60*60*1000
+					fmt.Println("Raw download rate limit hit on Token 1. Switching to Token 2 for 5 hours.")
+				} else {
+					useBackupTokenUntil = 0
+					fmt.Println("Raw download rate limit hit on Token 2. Reverting to Token 1.")
+				}
+				
+				req.Header.Set("Authorization", "Bearer "+validTokens[(currentTokenIndex+1)%2])
+				resp2, err2 := client.Do(req)
+				if err2 != nil {
+					return
+				}
+				resp = resp2
+			}
+			defer resp.Body.Close()
+			
+			if resp.StatusCode == 200 {
+				contentBytes, err := io.ReadAll(resp.Body)
+				if err == nil {
+					mu.Lock()
+					downloadedMdFiles = append(downloadedMdFiles, models.MdFile{
+						Name:    f.Name,
+						Content: string(contentBytes),
+					})
+					mu.Unlock()
+				}
+			}
+		}(file)
+	}
+
+	downloadWg.Wait()
+
+	uniqueFilesMap := make(map[string]models.MdFile)
+	for _, f := range downloadedMdFiles {
+		lowerName := strings.ToLower(f.Name)
+		if _, exists := uniqueFilesMap[lowerName]; !exists {
+			uniqueFilesMap[lowerName] = f
+		}
+	}
+
+	var finalMdFiles []models.MdFile
+	for _, f := range uniqueFilesMap {
+		finalMdFiles = append(finalMdFiles, f)
+	}
+
+	getPriority := func(name string) int {
+		lower := strings.ToLower(name)
+		if strings.HasPrefix(lower, "readme") {
+			return 1
+		}
+		if strings.HasPrefix(lower, "code_of_conduct") {
+			return 2
+		}
+		if strings.HasPrefix(lower, "contributing") {
+			return 3
+		}
+		if strings.HasPrefix(lower, "license") {
+			return 4
+		}
+		return 5
+	}
+
+	for i := 0; i < len(finalMdFiles)-1; i++ {
+		for j := i + 1; j < len(finalMdFiles); j++ {
+			pI := getPriority(finalMdFiles[i].Name)
+			pJ := getPriority(finalMdFiles[j].Name)
+			
+			swap := false
+			if pI != pJ {
+				swap = pI > pJ
+			} else {
+				swap = strings.Compare(finalMdFiles[i].Name, finalMdFiles[j].Name) > 0
+			}
+			
+			if swap {
+				finalMdFiles[i], finalMdFiles[j] = finalMdFiles[j], finalMdFiles[i]
+			}
+		}
+	}
+
+	return repoData, finalMdFiles, nil
+}
+
+func FetchGithubCommits(owner, repoName, perPage string) ([]interface{}, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits?per_page=%s", owner, repoName, perPage)
+	body, err := doGithubRequest(url)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []interface{}
+	if err := json.Unmarshal(body, &data); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
