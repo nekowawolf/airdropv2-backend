@@ -111,10 +111,10 @@ func SetupRoutes(app *fiber.App) {
 	protected.Delete("/portfolio/skills/tech/:id", controllers.DeleteTechSkill)
 	protected.Delete("/portfolio/skills/design/:id", controllers.DeleteDesignSkill)
 
-	// Protected image routes
-	protected.Post("/images", controllers.UploadImageHandler)
-	protected.Get("/images", controllers.GetAllImages)
-	protected.Delete("/images/:id", controllers.DeleteImage)
+	// Protected media routes (Cloudflare R2)
+	protected.Post("/images", controllers.UploadMediaHandler)
+	protected.Get("/images", controllers.GetAllMedia)
+	protected.Delete("/images/:id", controllers.DeleteMedia)
 
 	// Protected link routes
 	protected.Get("/postslink/:id", controllers.GetPostByID)
