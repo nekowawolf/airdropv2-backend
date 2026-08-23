@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -88,6 +90,68 @@ func doGithubRequest(url string) ([]byte, error) {
 	return body, nil
 }
 
+func fixMarkdownLinks(content, repoPath, owner, repoName, defaultBranch string) string {
+	dir := path.Dir(repoPath)
+
+	imgSrcRegex := regexp.MustCompile(`(?i)(src=["'])([^"']+)["']`)
+	content = imgSrcRegex.ReplaceAllStringFunc(content, func(m string) string {
+		matches := imgSrcRegex.FindStringSubmatch(m)
+		if len(matches) == 3 {
+			urlStr := matches[2]
+			if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") && !strings.HasPrefix(urlStr, "mailto:") && !strings.HasPrefix(urlStr, "data:") {
+				resolvedPath := path.Join(dir, urlStr)
+				newUrl := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", owner, repoName, defaultBranch, resolvedPath)
+				return matches[1] + newUrl + "\""
+			}
+		}
+		return m
+	})
+
+	mdImgRegex := regexp.MustCompile(`(!\[[^\]]*\])\(([^)]+)\)`)
+	content = mdImgRegex.ReplaceAllStringFunc(content, func(m string) string {
+		matches := mdImgRegex.FindStringSubmatch(m)
+		if len(matches) == 3 {
+			urlStr := matches[2]
+			if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") && !strings.HasPrefix(urlStr, "data:") {
+				resolvedPath := path.Join(dir, urlStr)
+				newUrl := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", owner, repoName, defaultBranch, resolvedPath)
+				return matches[1] + "(" + newUrl + ")"
+			}
+		}
+		return m
+	})
+
+	aHrefRegex := regexp.MustCompile(`(?i)(href=["'])([^"']+)["']`)
+	content = aHrefRegex.ReplaceAllStringFunc(content, func(m string) string {
+		matches := aHrefRegex.FindStringSubmatch(m)
+		if len(matches) == 3 {
+			urlStr := matches[2]
+			if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") && !strings.HasPrefix(urlStr, "mailto:") && !strings.HasPrefix(urlStr, "#") {
+				resolvedPath := path.Join(dir, urlStr)
+				newUrl := fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repoName, defaultBranch, resolvedPath)
+				return matches[1] + newUrl + "\""
+			}
+		}
+		return m
+	})
+
+	mdLinkRegex := regexp.MustCompile(`(\[[^\]]*\])\(([^)]+)\)`)
+	content = mdLinkRegex.ReplaceAllStringFunc(content, func(m string) string {
+		matches := mdLinkRegex.FindStringSubmatch(m)
+		if len(matches) == 3 {
+			urlStr := matches[2]
+			if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") && !strings.HasPrefix(urlStr, "#") && !strings.HasPrefix(urlStr, "mailto:") {
+				resolvedPath := path.Join(dir, urlStr)
+				newUrl := fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repoName, defaultBranch, resolvedPath)
+				return matches[1] + "(" + newUrl + ")"
+			}
+		}
+		return m
+	})
+
+	return content
+}
+
 func FetchGithubRepoStats(owner, repoName string) (*models.GithubStats, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repoName)
 	body, err := doGithubRequest(url)
@@ -127,6 +191,7 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []m
 		Name        string `json:"name"`
 		Type        string `json:"type"`
 		DownloadURL string `json:"download_url"`
+		Path        string `json:"path"`
 	}
 
 	var rootContents []ContentItem
@@ -176,6 +241,11 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []m
 				filesToDownload = append(filesToDownload, item)
 			}
 		}
+	}
+
+	defaultBranch := "main"
+	if branch, ok := repoData["default_branch"].(string); ok {
+		defaultBranch = branch
 	}
 
 	var downloadedMdFiles []models.MdFile
@@ -237,10 +307,11 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []m
 			if resp.StatusCode == 200 {
 				contentBytes, err := io.ReadAll(resp.Body)
 				if err == nil {
+					finalContent := fixMarkdownLinks(string(contentBytes), f.Path, owner, repoName, defaultBranch)
 					mu.Lock()
 					downloadedMdFiles = append(downloadedMdFiles, models.MdFile{
 						Name:    f.Name,
-						Content: string(contentBytes),
+						Content: finalContent,
 					})
 					mu.Unlock()
 				}
