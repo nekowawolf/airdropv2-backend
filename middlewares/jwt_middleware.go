@@ -11,7 +11,6 @@ import (
 func AdminMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
-		log.Println("Authorization Header:", authHeader)
 
 		if authHeader == "" {
 			log.Println("Authorization header is missing")
@@ -29,7 +28,6 @@ func AdminMiddleware() fiber.Handler {
 		}
 
 		tokenString := strings.TrimSpace(splitToken[1])
-		log.Println("Extracted Token:", tokenString)
 
 		adminID, err := utils.ValidateJWT(tokenString, false)
 		if err != nil {

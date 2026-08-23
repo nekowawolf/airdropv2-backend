@@ -51,7 +51,7 @@ func SubmitSupportRequest(c *fiber.Ctx) error {
 		})
 	}
 
-	if !verifyTurnstile(req.TurnstileToken) {
+	if !utils.VerifyTurnstile(req.TurnstileToken) {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": "Invalid or missing Turnstile token",
 		})

@@ -1,10 +1,14 @@
 package controllers
 
 import (
+	"context"
+	"fmt"
 	"time"
+
 	"github.com/gofiber/fiber/v2"
-	"github.com/nekowawolf/airdropv2/module"
+	"github.com/nekowawolf/airdropv2/config"
 	"github.com/nekowawolf/airdropv2/models"
+	"github.com/nekowawolf/airdropv2/module"
 	"github.com/nekowawolf/airdropv2/utils"
 )
 
@@ -27,14 +31,42 @@ func InsertAdminHandler(c *fiber.Ctx) error {
 }
 
 func LoginAdminHandler(c *fiber.Ctx) error {
+	ip := c.IP()
+	key := fmt.Sprintf("rate:admin_login:%s", ip)
+	ctx := context.Background()
+
+	count, err := config.RedisClient.Incr(ctx, key).Result()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Internal server error during rate limiting",
+		})
+	}
+
+	if count == 1 {
+		config.RedisClient.Expire(ctx, key, 1*time.Hour)
+	}
+
+	if count > 5 {
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+			"error": "Too many login attempts. Please try again later.",
+		})
+	}
+
 	type Request struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username       string `json:"username"`
+		Password       string `json:"password"`
+		TurnstileToken string `json:"turnstile_token"`
 	}
 
 	var req Request
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if !utils.VerifyTurnstile(req.TurnstileToken) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Invalid or missing Turnstile token",
+		})
 	}
 
 	isAuthenticated, err := module.LoginAdmin(req.Username, req.Password)

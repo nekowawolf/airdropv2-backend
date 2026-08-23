@@ -2,11 +2,8 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -17,36 +14,7 @@ import (
 	"github.com/nekowawolf/airdropv2/utils"
 )
 
-type TurnstileResponse struct {
-	Success bool `json:"success"`
-}
 
-func verifyTurnstile(token string) bool {
-	secret := os.Getenv("TURNSTILE_SECRET_KEY")
-	if secret == "" {
-		fmt.Println("TURNSTILE_SECRET_KEY is not set in environment")
-		return false
-	}
-
-	data := url.Values{}
-	data.Set("secret", secret)
-	data.Set("response", token)
-
-	resp, err := http.PostForm("https://challenges.cloudflare.com/turnstile/v0/siteverify", data)
-	if err != nil {
-		fmt.Println("Turnstile verification request failed:", err)
-		return false
-	}
-	defer resp.Body.Close()
-
-	var result TurnstileResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Println("Turnstile response decode failed:", err)
-		return false
-	}
-
-	return result.Success
-}
 
 func SubmitRepo(c *fiber.Ctx) error {
 	ip := c.IP()
@@ -101,7 +69,7 @@ func SubmitRepo(c *fiber.Ctx) error {
 		}
 	}
 
-	if !verifyTurnstile(req.TurnstileToken) {
+	if !utils.VerifyTurnstile(req.TurnstileToken) {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": "Invalid or missing Turnstile token",
 		})

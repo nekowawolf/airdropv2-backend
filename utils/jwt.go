@@ -13,7 +13,7 @@ import (
 func GetJWTSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		log.Println("Warning: JWT_SECRET is not set!")
+		log.Fatal("FATAL: JWT_SECRET is not set in environment!")
 	}
 	return []byte(secret)
 }
@@ -21,7 +21,7 @@ func GetJWTSecret() []byte {
 func GetRefreshJWTSecret() []byte {
 	secret := os.Getenv("REFRESH_JWT_SECRET")
 	if secret == "" {
-		log.Println("Warning: REFRESH_JWT_SECRET is not set!")
+		log.Fatal("FATAL: REFRESH_JWT_SECRET is not set in environment!")
 	}
 	return []byte(secret)
 }
@@ -65,10 +65,7 @@ func GenerateJWT(adminID string) (string, string, error) {
 }
 
 func ValidateJWT(tokenString string, isRefreshToken bool) (string, error) {
-	log.Println("Validating Token:", tokenString)
-
 	tokenString = strings.TrimSpace(strings.Replace(tokenString, "Bearer", "", 1))
-	log.Println("Cleaned Token:", tokenString)
 
 	var secret []byte
 	if isRefreshToken {

@@ -41,12 +41,23 @@ func GetSupporterByID(c *fiber.Ctx) error {
 }
 
 func InsertSupporter(c *fiber.Ctx) error {
-	var req models.Supporter
+	type SupporterRequest struct {
+		models.Supporter
+		TurnstileToken string `json:"turnstileToken"`
+	}
+
+	var req SupporterRequest
 	if err := utils.ParseBody(c, &req); err != nil {
 		return err
 	}
 
-	insertedID := module.InsertSupporter(&req)
+	if !utils.VerifyTurnstile(req.TurnstileToken) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Invalid or missing Turnstile token",
+		})
+	}
+
+	insertedID := module.InsertSupporter(&req.Supporter)
 	if insertedID == nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to insert supporter",
