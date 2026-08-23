@@ -131,9 +131,10 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []m
 
 	var rootContents []ContentItem
 	var githubContents []ContentItem
+	var githubReadmesContents []ContentItem
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -153,9 +154,19 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []m
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+		readmesUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/.github/readmes", owner, repoName)
+		body, err := doGithubRequest(readmesUrl)
+		if err == nil {
+			json.Unmarshal(body, &githubReadmesContents)
+		}
+	}()
+
 	wg.Wait()
 
 	allContents := append(rootContents, githubContents...)
+	allContents = append(allContents, githubReadmesContents...)
 
 	var filesToDownload []ContentItem
 	for _, item := range allContents {
