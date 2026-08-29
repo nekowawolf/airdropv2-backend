@@ -29,6 +29,14 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/aitools", controllers.GetAllAITools)
 	api.Get("/aitools/stats", controllers.GetAIToolStats)
 
+	// Public Net routes
+	api.Get("/net", controllers.GetAllNet)
+	api.Get("/net/stats", controllers.GetNetStats)
+
+	// Public Creators routes
+	api.Get("/creators", controllers.GetAllCreators)
+	api.Get("/creators/stats", controllers.GetCreatorsStats)
+
 	// Public Web3 Tool routes
 	api.Get("/web3tools", controllers.GetAllWeb3Tools)
 	api.Get("/web3tools/stats", controllers.GetWeb3ToolStats)
@@ -79,6 +87,18 @@ func SetupRoutes(app *fiber.App) {
 	protected.Post("/aitools", controllers.InsertAITools)
 	protected.Put("/aitools/:id", controllers.UpdateAIToolsByID)
 	protected.Delete("/aitools/:id", controllers.DeleteAIToolsByID)
+
+	// Protected Net routes
+	protected.Get("/net/:id", controllers.GetNetByID)
+	protected.Post("/net", controllers.InsertNet)
+	protected.Put("/net/:id", controllers.UpdateNetByID)
+	protected.Delete("/net/:id", controllers.DeleteNetByID)
+
+	// Protected Creators routes
+	protected.Get("/creators/:id", controllers.GetCreatorsByID)
+	protected.Post("/creators", controllers.InsertCreators)
+	protected.Put("/creators/:id", controllers.UpdateCreatorsByID)
+	protected.Delete("/creators/:id", controllers.DeleteCreatorsByID)
 
 	// Protected Web3 Tool routes
 	protected.Get("/web3tools/:id", controllers.GetWeb3ToolsByID)

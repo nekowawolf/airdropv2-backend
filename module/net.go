@@ -10,8 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func InsertAITools(name, description string, imageURL string, website string, categories []string, media models.AIToolsMedia, socials models.AIToolsSocials) interface{} {
-    newTool := models.AITools{
+func InsertNet(name, description string, imageURL string, website string, categories []string, media models.NetMedia, socials models.NetSocials) interface{} {
+    newNet := models.Net{
         ID:          primitive.NewObjectID(),
         Name:        name,
         Description: description,
@@ -23,7 +23,7 @@ func InsertAITools(name, description string, imageURL string, website string, ca
         CreatedAt:   time.Now(),
     }
 
-    insertedID, err := InsertDocument("aiTools", newTool)
+    insertedID, err := InsertDocument("net", newNet)
     if err != nil {
         fmt.Println(err)
         return nil
@@ -32,30 +32,30 @@ func InsertAITools(name, description string, imageURL string, website string, ca
     return insertedID
 }
 
-func GetAllAITools() ([]models.AITools, error) {
+func GetAllNet() ([]models.Net, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-	collection := config.Database.Collection("aiTools")
+	collection := config.Database.Collection("net")
 	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving data: %v", err)
 	}
 	defer cursor.Close(ctx)
 
-	var tools []models.AITools
-	if err = cursor.All(ctx, &tools); err != nil {
+	var nets []models.Net
+	if err = cursor.All(ctx, &nets); err != nil {
 		return nil, fmt.Errorf("error decoding data: %v", err)
 	}
 
-	return tools, nil
+	return nets, nil
 }
 
-func GetAIToolStats() (map[string]interface{}, error) {
+func GetNetStats() (map[string]interface{}, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-    collection := config.Database.Collection("aiTools")
+    collection := config.Database.Collection("net")
 
     pipeline := bson.A{
         bson.M{
@@ -118,14 +118,14 @@ func GetAIToolStats() (map[string]interface{}, error) {
     return stats, nil
 }
 
-func GetAIToolsByID(id primitive.ObjectID) (*models.AITools, error) {
+func GetNetByID(id primitive.ObjectID) (*models.Net, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-	collection := config.Database.Collection("aiTools")
+	collection := config.Database.Collection("net")
 	filter := bson.M{"_id": id}
 
-	var result models.AITools
+	var result models.Net
 	err := collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return nil, err
@@ -134,19 +134,19 @@ func GetAIToolsByID(id primitive.ObjectID) (*models.AITools, error) {
 	return &result, nil
 }
 
-func UpdateAIToolsByID(id primitive.ObjectID, updateData models.AITools) (*models.AITools, error) {
+func UpdateNetByID(id primitive.ObjectID, updateData models.Net) (*models.Net, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-	collection := config.Database.Collection("aiTools")
+	collection := config.Database.Collection("net")
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":        updateData.Name,
-			"description": updateData.Description,
-			"image_url":   updateData.ImageURL,
-			"website":     updateData.Website,
-			"categories":  updateData.Categories,
+			"name":            updateData.Name,
+			"description":     updateData.Description,
+			"image_url":       updateData.ImageURL,
+			"website":         updateData.Website,
+			"categories":      updateData.Categories,
 			"media":       updateData.Media,
 			"socials":     updateData.Socials,
 		},
@@ -160,20 +160,20 @@ func UpdateAIToolsByID(id primitive.ObjectID, updateData models.AITools) (*model
 	return &updateData, nil
 }
 
-func DeleteAIToolsByID(id primitive.ObjectID) error {
+func DeleteNetByID(id primitive.ObjectID) error {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-    collection := config.Database.Collection("aiTools")
+    collection := config.Database.Collection("net")
     filter := bson.M{"_id": id}
 
     result, err := collection.DeleteOne(ctx, filter)
     if err != nil {
-        return fmt.Errorf("error deleting ai tool for ID %s: %s", id.Hex(), err.Error())
+        return fmt.Errorf("error deleting net for ID %s: %s", id.Hex(), err.Error())
     }
 
     if result.DeletedCount == 0 {
-        return fmt.Errorf("no ai tool found with ID %s", id.Hex())
+        return fmt.Errorf("no net found with ID %s", id.Hex())
     }
 
     return nil

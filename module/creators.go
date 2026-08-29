@@ -10,20 +10,22 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func InsertAITools(name, description string, imageURL string, website string, categories []string, media models.AIToolsMedia, socials models.AIToolsSocials) interface{} {
-    newTool := models.AITools{
+func InsertCreators(name, description string, imageURL string, website string, category, language string, openToWork bool, socials models.CreatorsSocials, platforms models.CreatorsPlatforms) interface{} {
+    newCreator := models.Creators{
         ID:          primitive.NewObjectID(),
         Name:        name,
         Description: description,
         ImageURL:    imageURL,
         Website:     website,
-        Categories:  categories,
-        Media:       media,
+        Category:    category,
+        Language:    language,
+        OpenToWork:  openToWork,
         Socials:     socials,
+        Platforms:   platforms,
         CreatedAt:   time.Now(),
     }
 
-    insertedID, err := InsertDocument("aiTools", newTool)
+    insertedID, err := InsertDocument("creators", newCreator)
     if err != nil {
         fmt.Println(err)
         return nil
@@ -32,30 +34,30 @@ func InsertAITools(name, description string, imageURL string, website string, ca
     return insertedID
 }
 
-func GetAllAITools() ([]models.AITools, error) {
+func GetAllCreators() ([]models.Creators, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-	collection := config.Database.Collection("aiTools")
+	collection := config.Database.Collection("creators")
 	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving data: %v", err)
 	}
 	defer cursor.Close(ctx)
 
-	var tools []models.AITools
-	if err = cursor.All(ctx, &tools); err != nil {
+	var creators []models.Creators
+	if err = cursor.All(ctx, &creators); err != nil {
 		return nil, fmt.Errorf("error decoding data: %v", err)
 	}
 
-	return tools, nil
+	return creators, nil
 }
 
-func GetAIToolStats() (map[string]interface{}, error) {
+func GetCreatorsStats() (map[string]interface{}, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-    collection := config.Database.Collection("aiTools")
+    collection := config.Database.Collection("creators")
 
     pipeline := bson.A{
         bson.M{
@@ -64,8 +66,7 @@ func GetAIToolStats() (map[string]interface{}, error) {
                     bson.M{"$count": "count"},
                 },
                 "categories": bson.A{
-                    bson.M{"$unwind": "$categories"},
-                    bson.M{"$group": bson.M{"_id": "$categories", "count": bson.M{"$sum": 1}}},
+                    bson.M{"$group": bson.M{"_id": "$category", "count": bson.M{"$sum": 1}}},
                 },
             },
         },
@@ -106,8 +107,10 @@ func GetAIToolStats() (map[string]interface{}, error) {
                     if doc["_id"] != nil {
                         key = doc["_id"].(string)
                     }
-                    if count, ok := doc["count"].(int32); ok {
-                        categories[key] = int(count)
+                    if key != "" {
+                        if count, ok := doc["count"].(int32); ok {
+                            categories[key] = int(count)
+                        }
                     }
                 }
             }
@@ -118,14 +121,14 @@ func GetAIToolStats() (map[string]interface{}, error) {
     return stats, nil
 }
 
-func GetAIToolsByID(id primitive.ObjectID) (*models.AITools, error) {
+func GetCreatorsByID(id primitive.ObjectID) (*models.Creators, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-	collection := config.Database.Collection("aiTools")
+	collection := config.Database.Collection("creators")
 	filter := bson.M{"_id": id}
 
-	var result models.AITools
+	var result models.Creators
 	err := collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return nil, err
@@ -134,21 +137,23 @@ func GetAIToolsByID(id primitive.ObjectID) (*models.AITools, error) {
 	return &result, nil
 }
 
-func UpdateAIToolsByID(id primitive.ObjectID, updateData models.AITools) (*models.AITools, error) {
+func UpdateCreatorsByID(id primitive.ObjectID, updateData models.Creators) (*models.Creators, error) {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-	collection := config.Database.Collection("aiTools")
+	collection := config.Database.Collection("creators")
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":        updateData.Name,
-			"description": updateData.Description,
-			"image_url":   updateData.ImageURL,
-			"website":     updateData.Website,
-			"categories":  updateData.Categories,
-			"media":       updateData.Media,
-			"socials":     updateData.Socials,
+			"name":          updateData.Name,
+			"description":   updateData.Description,
+			"image_url":     updateData.ImageURL,
+			"website":       updateData.Website,
+			"category":      updateData.Category,
+			"language":      updateData.Language,
+			"open_to_work":  updateData.OpenToWork,
+			"socials":       updateData.Socials,
+			"platforms":     updateData.Platforms,
 		},
 	}
 
@@ -160,20 +165,20 @@ func UpdateAIToolsByID(id primitive.ObjectID, updateData models.AITools) (*model
 	return &updateData, nil
 }
 
-func DeleteAIToolsByID(id primitive.ObjectID) error {
+func DeleteCreatorsByID(id primitive.ObjectID) error {
 	ctx, cancel := utils.GetDBContext()
 	defer cancel()
 
-    collection := config.Database.Collection("aiTools")
+    collection := config.Database.Collection("creators")
     filter := bson.M{"_id": id}
 
     result, err := collection.DeleteOne(ctx, filter)
     if err != nil {
-        return fmt.Errorf("error deleting ai tool for ID %s: %s", id.Hex(), err.Error())
+        return fmt.Errorf("error deleting creator for ID %s: %s", id.Hex(), err.Error())
     }
 
     if result.DeletedCount == 0 {
-        return fmt.Errorf("no ai tool found with ID %s", id.Hex())
+        return fmt.Errorf("no creator found with ID %s", id.Hex())
     }
 
     return nil
