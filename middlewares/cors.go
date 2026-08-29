@@ -11,12 +11,15 @@ var origins = []string{
     "https://cc.nekowawolf.xyz",
     "https://ai.nekowawolf.xyz",
     "https://www.nekowawolf.xyz",
+    "https://net.nekowawolf.xyz",
     "https://link.nekowawolf.xyz",
     "https://web3.nekowawolf.xyz",
     "https://admin.nekowawolf.xyz",
+    "https://guild.nekowawolf.xyz",
     "https://github.nekowawolf.xyz",
     "https://nekowawolf.github.io",
     "https://airdrop.nekowawolf.xyz",
+    "https://creators.nekowawolf.xyz",
     "https://portfolio.nekowawolf.xyz",
 }
 
