@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/nekowawolf/airdropv2/config"
-	"github.com/nekowawolf/airdropv2/models"
+	"github.com/nekowawolf/airdropv2/features/notes"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -108,7 +108,7 @@ func handleNoteInput(c tele.Context) error {
 		body = strings.TrimSpace(content)
 	}
 
-	note := models.Notes{
+	note := notes.Notes{
 		ID:        primitive.NewObjectID(),
 		Title:     title,
 		Content:   body,
@@ -367,7 +367,7 @@ func handleViewNotesStaticList(c tele.Context, data string, mode string, isNewMe
 	opts := options.Find().SetSort(bson.D{{"created_at", -1}})
 	cursor, _ := config.Database.Collection("notes").Find(context.Background(), filter, opts)
 	defer cursor.Close(context.Background())
-	var notes []models.Notes
+	var notes []notes.Notes
 	cursor.All(context.Background(), &notes)
 
 	if len(notes) == 0 {
@@ -457,7 +457,7 @@ func executeDumpNotes(c tele.Context, data string) error {
 	opts := options.Find().SetSort(bson.D{{"created_at", -1}})
 	cursor, _ := config.Database.Collection("notes").Find(context.Background(), filter, opts)
 	defer cursor.Close(context.Background())
-	var notes []models.Notes
+	var notes []notes.Notes
 	cursor.All(context.Background(), &notes)
 
 	var sb strings.Builder
@@ -491,7 +491,7 @@ func handleViewSingleNoteForView(c tele.Context) error {
 	objID, err := primitive.ObjectIDFromHex(noteIDStr)
 	if err != nil { return c.Send("❌ Invalid ID.") }
 	
-	var note models.Notes
+	var note notes.Notes
 	err = config.Database.Collection("notes").FindOne(context.Background(), bson.M{"_id": objID}).Decode(&note)
 	if err != nil {
 		return c.Send("❌ Note not found. It might have been deleted.")
@@ -529,7 +529,7 @@ func handleViewSingleNoteForManage(c tele.Context) error {
 	objID, err := primitive.ObjectIDFromHex(noteIDStr)
 	if err != nil { return c.Send("❌ Invalid ID.") }
 	
-	var note models.Notes
+	var note notes.Notes
 	err = config.Database.Collection("notes").FindOne(context.Background(), bson.M{"_id": objID}).Decode(&note)
 	if err != nil {
 		return c.Send("❌ Note not found. It might have been deleted.")

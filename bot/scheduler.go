@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/nekowawolf/airdropv2/config"
-	"github.com/nekowawolf/airdropv2/models"
-	"github.com/nekowawolf/airdropv2/module"
+	"github.com/nekowawolf/airdropv2/features/message"
+	"github.com/nekowawolf/airdropv2/features/github"
 	"github.com/robfig/cron/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	tele "gopkg.in/telebot.v3"
@@ -52,7 +52,7 @@ func InitScheduler() {
 
 	_, err = cronScheduler.AddFunc("0 0,12 * * *", func() {
 		log.Println("Running Github Repo Stats Sync (00:00 & 12:00)...")
-		module.SyncAllGithubRepoStats()
+		github.SyncAllGithubRepoStats()
 	})
 	if err != nil {
 		log.Printf("Failed to add cron job for Github sync: %v", err)
@@ -104,7 +104,7 @@ func CheckAndSendJournalAlert(textIndex int) {
 		return
 	}
 	
-	var msgConfig models.Message
+	var msgConfig message.Message
 	err = config.Database.Collection("messages").FindOne(context.Background(), bson.M{}).Decode(&msgConfig)
 	if err != nil {
 		log.Printf("Failed to fetch message config for alert: %v", err)

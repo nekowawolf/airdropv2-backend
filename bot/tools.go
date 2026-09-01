@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/nekowawolf/airdropv2/config"
-	"github.com/nekowawolf/airdropv2/models"
+	"github.com/nekowawolf/airdropv2/features/media"
 	"github.com/nekowawolf/airdropv2/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -441,7 +441,7 @@ func handlePhotoUpload(c tele.Context) error {
 		return c.Send(fmt.Sprintf("❌ R2 upload failed: %v", err))
 	}
 
-	media := models.Media{
+	mediaObj := media.Media{
 		ID:          primitive.NewObjectID(),
 		Filename:    filename,
 		URL:         finalURL,
@@ -452,7 +452,7 @@ func handlePhotoUpload(c tele.Context) error {
 		CreatedAt:   time.Now(),
 	}
 
-	_, err = config.Database.Collection("media").InsertOne(context.Background(), media)
+	_, err = config.Database.Collection("media").InsertOne(context.Background(), mediaObj)
 	if err != nil {
 		return c.Send(fmt.Sprintf("❌ Upload successful to R2, but failed to save to database: %v", err))
 	}

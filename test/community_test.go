@@ -1,11 +1,10 @@
 package test
 
 import (
+	"github.com/nekowawolf/airdropv2/features/community"
 	"fmt"
 	"testing"
 
-	"github.com/nekowawolf/airdropv2/models"
-	"github.com/nekowawolf/airdropv2/module"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -16,7 +15,7 @@ func TestInsertCryptoCommunity(t *testing.T) {
 	imgURL := "https://example.com/image.png"
 	linkURL := "https://example.com"
 
-	result := module.InsertCryptoCommunity(name, platforms, category, imgURL, linkURL)
+	result := community.InsertCryptoCommunity(name, platforms, category, imgURL, linkURL)
 
 	id, ok := result.(primitive.ObjectID)
 	if !ok || id.IsZero() {
@@ -28,7 +27,7 @@ func TestInsertCryptoCommunity(t *testing.T) {
 }
 
 func TestGetAllCryptoCommunity(t *testing.T) {
-	data, err := module.GetAllCryptoCommunity()
+	data, err := community.GetAllCryptoCommunity()
 	if err != nil {
 		t.Errorf("Failed to retrieve crypto communities: %v", err)
 	} else if len(data) == 0 {
@@ -44,7 +43,7 @@ func TestGetCryptoCommunityByID(t *testing.T) {
 		t.Fatalf("Invalid ObjectID: %v", err)
 	}
 
-	notes, err := module.GetCryptoCommunityByID(id)
+	notes, err := community.GetCryptoCommunityByID(id)
 	if err != nil {
 		t.Errorf("Failed to get notes: %v", err)
 	} else {
@@ -55,7 +54,7 @@ func TestGetCryptoCommunityByID(t *testing.T) {
 func TestGetCryptoCommunityByName(t *testing.T) {
 	name := "Airdrop"
 
-	communities, err := module.GetCryptoCommunityByName(name)
+	communities, err := community.GetCryptoCommunityByName(name)
 	if err != nil {
 		t.Fatalf("Error calling GetCryptoCommunityByName: %v", err)
 	}
@@ -75,7 +74,7 @@ func TestUpdateCryptoCommunityByID(t *testing.T) {
 	newImgURL := "https://example.com/updated-image.png"
 	newLinkURL := "https://example.com/updated-link"
 
-	updatedCrypto, err := module.UpdateCryptoCommunityByID(id, models.CryptoCommunity{
+	updatedCrypto, err := community.UpdateCryptoCommunityByID(id, community.CryptoCommunity{
 		Name:      newName,
 		Platforms: newPlatforms,
 		Category:  newCategory,
@@ -96,7 +95,7 @@ func TestDeleteCryptoCommunityByID(t *testing.T) {
 		t.Fatalf("Invalid ObjectID: %v", err)
 	}
 
-	err = module.DeleteCryptoCommunityByID(id)
+	err = community.DeleteCryptoCommunityByID(id)
 	if err != nil {
 		t.Errorf("Failed to delete CryptoCommunity by ID: %v", err)
 		return

@@ -1,10 +1,10 @@
 package test
 
 import (
+	"github.com/nekowawolf/airdropv2/features/airdrop"
 	"fmt"
 	"testing"
 
-	"github.com/nekowawolf/airdropv2/module"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -30,7 +30,7 @@ func TestInsertAirdropFree(t *testing.T) {
 	price := 0.0
 	usdIncome := 0
 
-	hasil, err := module.InsertAirdropFree(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide, price, usdIncome)
+	hasil, err := airdrop.InsertAirdropFree(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide, price, usdIncome)
 	if err != nil {
 		t.Errorf("Failed to insert AirdropFree: %v", err)
 	} else {
@@ -60,7 +60,7 @@ func TestInsertAirdropPaid(t *testing.T) {
 	price := 0.0
 	usdIncome := 0
 
-	hasil, err := module.InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide, price, usdIncome)
+	hasil, err := airdrop.InsertAirdropPaid(name, task, link, level, status, backed, funds, supply, newFdv, marketCap, vesting, linkClaim, linkDiscord, linkTwitter, linkTelegram, imageURL, description, linkGuide, price, usdIncome)
 	if err != nil {
 		t.Errorf("Failed to insert AirdropPaid: %v", err)
 	} else {
@@ -69,7 +69,7 @@ func TestInsertAirdropPaid(t *testing.T) {
 }
 
 func TestGetAllAirdropFree(t *testing.T) {
-	data, err := module.GetAllAirdropFree()
+	data, err := airdrop.GetAllAirdropFree()
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropFree data: %v", err)
 	} else if len(data) == 0 {
@@ -80,7 +80,7 @@ func TestGetAllAirdropFree(t *testing.T) {
 }
 
 func TestGetAllAirdrop(t *testing.T) {
-	allAirdrops, err := module.GetAllAirdrop()
+	allAirdrops, err := airdrop.GetAllAirdrop()
 	if err != nil {
 		t.Errorf("Failed to retrieve all airdrops: %v", err)
 		return
@@ -96,13 +96,13 @@ func TestGetAllAirdrop(t *testing.T) {
 		fmt.Printf("%v\n", airdrop)
 	}
 
-	freeAirdrops, err := module.GetAllAirdropFree()
+	freeAirdrops, err := airdrop.GetAllAirdropFree()
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropFree data: %v", err)
 		return
 	}
 
-	paidAirdrops, err := module.GetAllAirdropPaid()
+	paidAirdrops, err := airdrop.GetAllAirdropPaid()
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropPaid data: %v", err)
 		return
@@ -115,7 +115,7 @@ func TestGetAllAirdrop(t *testing.T) {
 }
 
 func TestGetAllAirdropPaid(t *testing.T) {
-	data, err := module.GetAllAirdropPaid()
+	data, err := airdrop.GetAllAirdropPaid()
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropPaid data: %v", err)
 	} else if len(data) == 0 {
@@ -132,7 +132,7 @@ func TestGetAirdropFreeByID(t *testing.T) {
 		return
 	}
 
-	airdrop, err := module.GetAirdropFreeByID(id)
+	airdrop, err := airdrop.GetAirdropFreeByID(id)
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropFree by ID: %v", err)
 	} else {
@@ -147,7 +147,7 @@ func TestGetAirdropPaidByID(t *testing.T) {
 		return
 	}
 
-	airdrop, err := module.GetAirdropPaidByID(id)
+	airdrop, err := airdrop.GetAirdropPaidByID(id)
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropPaid by ID: %v", err)
 	} else {
@@ -157,7 +157,7 @@ func TestGetAirdropPaidByID(t *testing.T) {
 
 func TestGetAirdropFreeByName(t *testing.T) {
 	name := "Initia"
-	airdrop, err := module.GetAirdropFreeByName(name)
+	airdrop, err := airdrop.GetAirdropFreeByName(name)
 	if err != nil {
 		t.Fatalf("Error calling GetAirdropFreeByName: %v", err)
 	}
@@ -167,7 +167,7 @@ func TestGetAirdropFreeByName(t *testing.T) {
 
 func TestGetAirdropPaidByName(t *testing.T) {
 	name := "Dflow"
-	airdrop, err := module.GetAirdropPaidByName(name)
+	airdrop, err := airdrop.GetAirdropPaidByName(name)
 	if err != nil {
 		t.Fatalf("Error calling GetAirdropPaidByName: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestGetAirdropPaidByName(t *testing.T) {
 func TestGetAllAirdropByName(t *testing.T) {
 	name := "Sender"
 
-	airdrops, err := module.GetAllAirdropByName(name)
+	airdrops, err := airdrop.GetAllAirdropByName(name)
 	if err != nil {
 		t.Fatalf("Error calling GetAirdropByName: %v", err)
 	}
@@ -218,13 +218,13 @@ func TestUpdateAirdropFreeByID(t *testing.T) {
 	newPrice := 0.2
 	newUSDIncome := 1200
 
-	err = module.UpdateAirdropFreeByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newLinkDiscord, newLinkTwitter, newLinkTelegram, newImageURL, newDescription, newLinkGuide, newPrice, newUSDIncome)
+	err = airdrop.UpdateAirdropFreeByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newLinkDiscord, newLinkTwitter, newLinkTelegram, newImageURL, newDescription, newLinkGuide, newPrice, newUSDIncome)
 	if err != nil {
 		t.Errorf("Failed to update AirdropFree by ID: %v", err)
 		return
 	}
 
-	airdrop, err := module.GetAirdropFreeByID(id)
+	airdrop, err := airdrop.GetAirdropFreeByID(id)
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropFree by ID after update: %v", err)
 		return
@@ -270,13 +270,13 @@ func TestUpdateAirdropPaidByID(t *testing.T) {
 	newPrice := 0.5
 	newUSDIncome := 230
 
-	err = module.UpdateAirdropPaidByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newLinkDiscord, newLinkTwitter, newLinkTelegram, newImageURL, newDescription, newLinkGuide, newPrice, newUSDIncome)
+	err = airdrop.UpdateAirdropPaidByID(id, newName, newTask, newLink, newLevel, newStatus, newBacked, newFunds, newSupply, newFdv, newMarketCap, newVesting, newLinkClaim, newLinkDiscord, newLinkTwitter, newLinkTelegram, newImageURL, newDescription, newLinkGuide, newPrice, newUSDIncome)
 	if err != nil {
 		t.Errorf("Failed to update AirdropPaid by ID: %v", err)
 		return
 	}
 
-	airdrop, err := module.GetAirdropPaidByID(id)
+	airdrop, err := airdrop.GetAirdropPaidByID(id)
 	if err != nil {
 		t.Errorf("Failed to retrieve AirdropPaid by ID after update: %v", err)
 		return
@@ -301,13 +301,13 @@ func TestDeleteAirdropFreeByID(t *testing.T) {
 		return
 	}
 
-	err = module.DeleteAirdropFreeByID(id)
+	err = airdrop.DeleteAirdropFreeByID(id)
 	if err != nil {
 		t.Errorf("Failed to delete AirdropFree by ID: %v", err)
 		return
 	}
 
-	airdrop, err := module.GetAirdropFreeByID(id)
+	airdrop, err := airdrop.GetAirdropFreeByID(id)
 	if err == nil {
 		t.Errorf("Expected no document, but found AirdropFree: %+v", airdrop)
 	} else {
@@ -322,13 +322,13 @@ func TestDeleteAirdropPaidByID(t *testing.T) {
 		return
 	}
 
-	err = module.DeleteAirdropPaidByID(id)
+	err = airdrop.DeleteAirdropPaidByID(id)
 	if err != nil {
 		t.Errorf("Failed to delete AirdropPaid by ID: %v", err)
 		return
 	}
 
-	airdrop, err := module.GetAirdropPaidByID(id)
+	airdrop, err := airdrop.GetAirdropPaidByID(id)
 	if err == nil {
 		t.Errorf("Expected no document, but found AirdropPaid: %+v", airdrop)
 	} else {

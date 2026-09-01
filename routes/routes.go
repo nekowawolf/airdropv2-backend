@@ -1,170 +1,200 @@
 package routes
 
 import (
-	"github.com/nekowawolf/airdropv2/controllers"
 	"github.com/nekowawolf/airdropv2/middlewares"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/nekowawolf/airdropv2/features/admin"
+	"github.com/nekowawolf/airdropv2/features/ai_tools"
+	"github.com/nekowawolf/airdropv2/features/airdrop"
+	"github.com/nekowawolf/airdropv2/features/community"
+	"github.com/nekowawolf/airdropv2/features/creators"
+	"github.com/nekowawolf/airdropv2/features/github"
+	"github.com/nekowawolf/airdropv2/features/github/repo_submission"
+	"github.com/nekowawolf/airdropv2/features/link"
+	"github.com/nekowawolf/airdropv2/features/media"
+	"github.com/nekowawolf/airdropv2/features/message"
+	"github.com/nekowawolf/airdropv2/features/net"
+	"github.com/nekowawolf/airdropv2/features/notes"
+	"github.com/nekowawolf/airdropv2/features/portfolio"
+	"github.com/nekowawolf/airdropv2/features/price"
+	"github.com/nekowawolf/airdropv2/features/support/support_request"
+	"github.com/nekowawolf/airdropv2/features/support/supporter"
+	"github.com/nekowawolf/airdropv2/features/web3_tools"
 )
 
 func SetupRoutes(app *fiber.App) {
 	api := app.Group("/nww")
 
 	// Auth routes
-	api.Post("/login", controllers.LoginAdminHandler)
-	api.Post("/refresh", controllers.RefreshTokenHandler)
-	api.Post("/logout", controllers.LogoutHandler)
+	api.Post("/login", admin.LoginAdminHandler)
+	api.Post("/refresh", admin.RefreshTokenHandler)
+	api.Post("/logout", admin.LogoutHandler)
 
 	// Public portfolio routes
-	api.Get("/portfolio", controllers.GetPortfolio)
+	api.Get("/portfolio", portfolio.GetPortfolioHandler)
+	api.Get("/portfolio/projects", portfolio.GetProjectsHandler)
+	api.Get("/portfolio/projects/:id", portfolio.GetProjectByIDHandler)
+	api.Get("/portfolio/designs", portfolio.GetDesignsHandler)
+	api.Get("/portfolio/designs/:id", portfolio.GetDesignByIDHandler)
+	api.Get("/portfolio/certificates", portfolio.GetCertificatesHandler)
+	api.Get("/portfolio/certificates/:id", portfolio.GetCertificateByIDHandler)
 	
 	// Public airdrop routes
-	api.Get("/airdrops", controllers.GetAirdropsPublicHandler)
-	api.Get("/airdrops/stats", controllers.GetAirdropsStatsHandler)
+	api.Get("/airdrops", airdrop.GetAirdropsPublicHandler)
+	api.Get("/airdrops/stats", airdrop.GetAirdropsStatsHandler)
 
 	// Public crypto community routes
-	api.Get("/cryptocommunity", controllers.GetAllCryptoCommunity)
-	api.Get("/cryptocommunity/stats", controllers.GetCryptoCommunityStats)
+	api.Get("/cryptocommunity", community.GetAllCryptoCommunityHandler)
+	api.Get("/cryptocommunity/stats", community.GetCryptoCommunityStatsHandler)
 
 	// Public AI Tool routes
-	api.Get("/aitools", controllers.GetAllAITools)
-	api.Get("/aitools/stats", controllers.GetAIToolStats)
+	api.Get("/aitools", ai_tools.GetAllAIToolsHandler)
+	api.Get("/aitools/stats", ai_tools.GetAIToolStatsHandler)
 
 	// Public Net routes
-	api.Get("/net", controllers.GetAllNet)
-	api.Get("/net/stats", controllers.GetNetStats)
+	api.Get("/net", net.GetAllNetHandler)
+	api.Get("/net/stats", net.GetNetStatsHandler)
 
 	// Public Creators routes
-	api.Get("/creators", controllers.GetAllCreators)
-	api.Get("/creators/stats", controllers.GetCreatorsStats)
+	api.Get("/creators", creators.GetAllCreatorsHandler)
+	api.Get("/creators/stats", creators.GetCreatorsStatsHandler)
 
 	// Public Web3 Tool routes
-	api.Get("/web3tools", controllers.GetAllWeb3Tools)
-	api.Get("/web3tools/stats", controllers.GetWeb3ToolStats)
+	api.Get("/web3tools", web3_tools.GetAllWeb3ToolsHandler)
+	api.Get("/web3tools/stats", web3_tools.GetWeb3ToolStatsHandler)
 
 	// Public Github Repo routes
-	api.Get("/githubrepo", controllers.GetAllGithubRepos)
-	api.Get("/githubrepo/stats", controllers.GetGithubRepoStats)
-	api.Get("/githubrepo/:id/history", controllers.GetGithubRepoHistory)
-	api.Get("/githubrepo/:id/details", controllers.GetGithubRepoDetails)
-	api.Get("/githubrepo/:id/commits", controllers.GetGithubRepoCommits)
-	api.Get("/githubrepo/commits/:owner/:repoName", controllers.GetGithubRepoCommitsByOwnerRepo)
+	api.Get("/githubrepo", github.GetAllGithubReposHandler)
+	api.Get("/githubrepo/stats", github.GetGithubRepoStatsHandler)
+	api.Get("/githubrepo/:id/history", github.GetGithubRepoHistoryHandler)
+	api.Get("/githubrepo/:id/details", github.GetGithubRepoDetailsHandler)
+	api.Get("/githubrepo/:id/commits", github.GetGithubRepoCommitsHandler)
+	api.Get("/githubrepo/commits/:owner/:repoName", github.GetGithubRepoCommitsByOwnerRepoHandler)
 
 	// Public price routes	
-	api.Get("/price", controllers.PriceHandler)
+	api.Get("/price", price.PriceHandler)
 
 	// Public link routes
-	api.Get("/profilelink", controllers.GetProfile)
-	api.Get("/postslink", controllers.GetAllPosts)
-	api.Get("/postslink/stats", controllers.GetPostStats)
+	api.Get("/profilelink", link.GetProfileHandler)
+	api.Get("/postslink", link.GetAllPostsHandler)
+	api.Get("/postslink/stats", link.GetPostStatsHandler)
 
 	// Public repo submission routes
-	api.Post("/repo-submissions", controllers.SubmitRepo)
+	api.Post("/repo-submissions", repo_submission.SubmitRepoHandler)
 
 	// Public support request routes
-	api.Post("/support-requests", controllers.SubmitSupportRequest)
+	api.Post("/support-requests", support_request.SubmitSupportRequestHandler)
 
 	// Public supporter routes
-	api.Get("/supporters", controllers.GetAllSupporters)
+	api.Get("/supporters", supporter.GetAllSupportersHandler)
 
 	// ==================== PROTECTED ROUTES ====================
 	protected := api.Group("/", middlewares.AdminMiddleware())
 
 	// Protected airdrop routes
-	protected.Get("/admin/airdrops", controllers.GetAirdropsAdminHandler)
-	protected.Get("/admin/airdrops/:id", controllers.GetAirdropByIDAdminHandler)
-	protected.Post("/admin/airdrops", controllers.InsertAirdropHandler)
-	protected.Put("/admin/airdrops/:id", controllers.UpdateAirdropHandler)
-	protected.Delete("/admin/airdrops/:id", controllers.DeleteAirdropHandler)
+	protected.Get("/admin/airdrops", airdrop.GetAirdropsAdminHandler)
+	protected.Get("/admin/airdrops/:id", airdrop.GetAirdropByIDAdminHandler)
+	protected.Post("/admin/airdrops", airdrop.InsertAirdropHandler)
+	protected.Put("/admin/airdrops/:id", airdrop.UpdateAirdropHandler)
+	protected.Delete("/admin/airdrops/:id", airdrop.DeleteAirdropHandler)
 
 	// Protected crypto community routes
-	protected.Get("/cryptocommunity/:id", controllers.GetCryptoCommunityByID)
-	protected.Post("/cryptocommunity", controllers.InsertCryptoCommunity)
-	protected.Put("/cryptocommunity/:id", controllers.UpdateCryptoCommunityByID)
-	protected.Delete("/cryptocommunity/:id", controllers.DeleteCryptoCommunityByID)
+	protected.Get("/cryptocommunity/:id", community.GetCryptoCommunityByIDHandler)
+	protected.Post("/cryptocommunity", community.InsertCryptoCommunityHandler)
+	protected.Put("/cryptocommunity/:id", community.UpdateCryptoCommunityByIDHandler)
+	protected.Delete("/cryptocommunity/:id", community.DeleteCryptoCommunityByIDHandler)
 
 	// Protected AI Tool routes
-	protected.Get("/aitools/:id", controllers.GetAIToolsByID)
-	protected.Post("/aitools", controllers.InsertAITools)
-	protected.Put("/aitools/:id", controllers.UpdateAIToolsByID)
-	protected.Delete("/aitools/:id", controllers.DeleteAIToolsByID)
+	protected.Get("/aitools/:id", ai_tools.GetAIToolsByIDHandler)
+	protected.Post("/aitools", ai_tools.InsertAIToolsHandler)
+	protected.Put("/aitools/:id", ai_tools.UpdateAIToolsByIDHandler)
+	protected.Delete("/aitools/:id", ai_tools.DeleteAIToolsByIDHandler)
 
 	// Protected Net routes
-	protected.Get("/net/:id", controllers.GetNetByID)
-	protected.Post("/net", controllers.InsertNet)
-	protected.Put("/net/:id", controllers.UpdateNetByID)
-	protected.Delete("/net/:id", controllers.DeleteNetByID)
+	protected.Get("/net/:id", net.GetNetByIDHandler)
+	protected.Post("/net", net.InsertNetHandler)
+	protected.Put("/net/:id", net.UpdateNetByIDHandler)
+	protected.Delete("/net/:id", net.DeleteNetByIDHandler)
 
 	// Protected Creators routes
-	protected.Get("/creators/:id", controllers.GetCreatorsByID)
-	protected.Post("/creators", controllers.InsertCreators)
-	protected.Put("/creators/:id", controllers.UpdateCreatorsByID)
-	protected.Delete("/creators/:id", controllers.DeleteCreatorsByID)
+	protected.Get("/creators/:id", creators.GetCreatorsByIDHandler)
+	protected.Post("/creators", creators.InsertCreatorsHandler)
+	protected.Put("/creators/:id", creators.UpdateCreatorsByIDHandler)
+	protected.Delete("/creators/:id", creators.DeleteCreatorsByIDHandler)
 
 	// Protected Web3 Tool routes
-	protected.Get("/web3tools/:id", controllers.GetWeb3ToolsByID)
-	protected.Post("/web3tools", controllers.InsertWeb3Tools)
-	protected.Put("/web3tools/:id", controllers.UpdateWeb3ToolsByID)
-	protected.Delete("/web3tools/:id", controllers.DeleteWeb3ToolsByID)
+	protected.Get("/web3tools/:id", web3_tools.GetWeb3ToolsByIDHandler)
+	protected.Post("/web3tools", web3_tools.InsertWeb3ToolsHandler)
+	protected.Put("/web3tools/:id", web3_tools.UpdateWeb3ToolsByIDHandler)
+	protected.Delete("/web3tools/:id", web3_tools.DeleteWeb3ToolsByIDHandler)
 
 	// Protected Github Repo routes
-	protected.Get("/githubrepo/:id", controllers.GetGithubRepoByID)
-	protected.Post("/githubrepo", controllers.InsertGithubRepo)
-	protected.Put("/githubrepo/:id", controllers.UpdateGithubRepoByID)
-	protected.Delete("/githubrepo/:id", controllers.DeleteGithubRepoByID)
+	protected.Get("/githubrepo/:id", github.GetGithubRepoByIDHandler)
+	protected.Post("/githubrepo", github.InsertGithubRepoHandler)
+	protected.Put("/githubrepo/:id", github.UpdateGithubRepoByIDHandler)
+	protected.Delete("/githubrepo/:id", github.DeleteGithubRepoByIDHandler)
 
 	// Protected portfolio routes
-	protected.Put("/portfolio", controllers.UpdatePortfolio)
-	protected.Put("/portfolio/hero", controllers.UpdateHeroProfile)
-	protected.Post("/portfolio/certificates", controllers.AddCertificate)
-	protected.Post("/portfolio/designs", controllers.AddDesign)
-	protected.Post("/portfolio/projects", controllers.AddProject)
-	protected.Post("/portfolio/experience", controllers.AddExperience)
-	protected.Post("/portfolio/education", controllers.AddEducation)
-	protected.Post("/portfolio/skills/tech", controllers.AddTechSkill)
-	protected.Post("/portfolio/skills/design", controllers.AddDesignSkill)
+	protected.Put("/portfolio", portfolio.UpdatePortfolioHandler)
+	protected.Put("/portfolio/hero", portfolio.UpdateHeroProfileHandler)
+	
+	protected.Post("/portfolio/projects", portfolio.InsertProjectHandler)
+	protected.Put("/portfolio/projects/:id", portfolio.UpdateProjectHandler)
+	protected.Delete("/portfolio/projects/:id", portfolio.DeleteProjectHandler)
 
-	protected.Delete("/portfolio/certificates/:id", controllers.DeleteCertificate)
-	protected.Delete("/portfolio/designs/:id", controllers.DeleteDesign)
-	protected.Delete("/portfolio/projects/:id", controllers.DeleteProject)
-	protected.Delete("/portfolio/experience/:id", controllers.DeleteExperience)
-	protected.Delete("/portfolio/education/:id", controllers.DeleteEducation)
-	protected.Delete("/portfolio/skills/tech/:id", controllers.DeleteTechSkill)
-	protected.Delete("/portfolio/skills/design/:id", controllers.DeleteDesignSkill)
+	protected.Post("/portfolio/designs", portfolio.InsertDesignHandler)
+	protected.Put("/portfolio/designs/:id", portfolio.UpdateDesignHandler)
+	protected.Delete("/portfolio/designs/:id", portfolio.DeleteDesignHandler)
+
+	protected.Post("/portfolio/certificates", portfolio.InsertCertificateHandler)
+	protected.Put("/portfolio/certificates/:id", portfolio.UpdateCertificateHandler)
+	protected.Delete("/portfolio/certificates/:id", portfolio.DeleteCertificateHandler)
+
+	protected.Post("/portfolio/experience", portfolio.AddExperienceHandler)
+	protected.Post("/portfolio/education", portfolio.AddEducationHandler)
+	protected.Post("/portfolio/skills/tech", portfolio.AddTechSkillHandler)
+	protected.Post("/portfolio/skills/design", portfolio.AddDesignSkillHandler)
+
+	protected.Delete("/portfolio/experience/:id", portfolio.DeleteExperienceHandler)
+	protected.Delete("/portfolio/education/:id", portfolio.DeleteEducationHandler)
+	protected.Delete("/portfolio/skills/tech/:id", portfolio.DeleteTechSkillHandler)
+	protected.Delete("/portfolio/skills/design/:id", portfolio.DeleteDesignSkillHandler)
 
 	// Protected media routes (Cloudflare R2)
-	protected.Post("/images", controllers.UploadMediaHandler)
-	protected.Get("/images", controllers.GetAllMedia)
-	protected.Delete("/images/:id", controllers.DeleteMedia)
+	protected.Post("/images", media.UploadMediaHandler)
+	protected.Get("/images", media.GetAllMediaHandler)
+	protected.Delete("/images/:id", media.DeleteMediaHandler)
 
 	// Protected link routes
-	protected.Get("/postslink/:id", controllers.GetPostByID)
-	protected.Post("/postslink", controllers.CreatePost)
-	protected.Put("/postslink/:id", controllers.UpdatePost)
-	protected.Put("/profilelink", controllers.UpdateProfile)
-	protected.Delete("/postslink/:id", controllers.DeletePost)
+	protected.Get("/postslink/:id", link.GetPostByIDHandler)
+	protected.Post("/postslink", link.CreatePostHandler)
+	protected.Put("/postslink/:id", link.UpdatePostHandler)
+	protected.Put("/profilelink", link.UpdateProfileHandler)
+	protected.Delete("/postslink/:id", link.DeletePostHandler)
 
 	// Protected Note routes
-	protected.Get("/notes", controllers.GetAllNotes)
-	protected.Get("/notes/:id", controllers.GetNoteByID)
-	protected.Post("/notes", controllers.InsertNote)
-	protected.Put("/notes/:id", controllers.UpdateNoteByID)
-	protected.Delete("/notes/:id", controllers.DeleteNoteByID)
+	protected.Get("/notes", notes.GetAllNotesHandler)
+	protected.Get("/notes/:id", notes.GetNoteByIDHandler)
+	protected.Post("/notes", notes.InsertNoteHandler)
+	protected.Put("/notes/:id", notes.UpdateNoteByIDHandler)
+	protected.Delete("/notes/:id", notes.DeleteNoteByIDHandler)
 
 	// Protected Message routes
-	protected.Get("/message", controllers.GetMessage)
-	protected.Put("/message", controllers.UpdateMessage)
+	protected.Get("/message", message.GetMessageHandler)
+	protected.Put("/message", message.UpdateMessageHandler)
 
 	// Protected repo submission routes
-	protected.Get("/repo-submissions", controllers.GetAllRepoSubmissions)
-	protected.Delete("/repo-submissions/:id", controllers.DeleteRepoSubmission)
+	protected.Get("/repo-submissions", repo_submission.GetAllRepoSubmissionsHandler)
+	protected.Delete("/repo-submissions/:id", repo_submission.DeleteRepoSubmissionHandler)
 
 	// Protected support request routes
-	protected.Get("/support-requests", controllers.GetAllSupportRequests)
-	protected.Delete("/support-requests/:id", controllers.DeleteSupportRequest)
+	protected.Get("/support-requests", support_request.GetAllSupportRequestsHandler)
+	protected.Delete("/support-requests/:id", support_request.DeleteSupportRequestHandler)
 
 	// Protected supporter routes
-	protected.Get("/supporters/:id", controllers.GetSupporterByID)
-	protected.Post("/supporters", controllers.InsertSupporter)
-	protected.Put("/supporters/:id", controllers.UpdateSupporterByID)
-	protected.Delete("/supporters/:id", controllers.DeleteSupporterByID)
+	protected.Get("/supporters/:id", supporter.GetSupporterByIDHandler)
+	protected.Post("/supporters", supporter.InsertSupporterHandler)
+	protected.Put("/supporters/:id", supporter.UpdateSupporterByIDHandler)
+	protected.Delete("/supporters/:id", supporter.DeleteSupporterByIDHandler)
 }

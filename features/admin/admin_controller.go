@@ -1,0 +1,143 @@
+package admin
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/nekowawolf/airdropv2/config"
+
+	"github.com/nekowawolf/airdropv2/utils"
+)
+
+func InsertAdminHandler(c *fiber.Ctx) error {
+	var req Admin
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	insertedID, err := InsertAdmin(req.Username, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message":  "Admin created successfully",
+		"admin_id": insertedID,
+	})
+}
+
+func LoginAdminHandler(c *fiber.Ctx) error {
+	ip := c.IP()
+	key := fmt.Sprintf("rate:admin_login:%s", ip)
+	ctx := context.Background()
+
+	count, err := config.RedisClient.Incr(ctx, key).Result()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Internal server error during rate limiting",
+		})
+	}
+
+	if count == 1 {
+		config.RedisClient.Expire(ctx, key, 1*time.Hour)
+	}
+
+	if count > 5 {
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+			"error": "Too many login attempts. Please try again later.",
+		})
+	}
+
+	type Request struct {
+		Username       string `json:"username"`
+		Password       string `json:"password"`
+		TurnstileToken string `json:"turnstile_token"`
+	}
+
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if !utils.VerifyTurnstile(req.TurnstileToken) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Invalid or missing Turnstile token",
+		})
+	}
+
+	isAuthenticated, err := LoginAdmin(req.Username, req.Password)
+	if err != nil || !isAuthenticated {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid username or password"})
+	}
+
+	accessToken, refreshToken, err := utils.GenerateJWT(req.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate tokens"})
+	}
+
+	err = SaveRefreshToken(req.Username, refreshToken, time.Now().Add(7*24*time.Hour))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save refresh token"})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":       "Login successful",
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"expires_in":    900,
+	})
+}
+
+func RefreshTokenHandler(c *fiber.Ctx) error {
+	type Request struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if req.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Refresh token is required"})
+	}
+
+	if !CheckRefreshToken(req.RefreshToken) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Refresh token not found or expired"})
+	}
+
+	newAccessToken, err := utils.RefreshAccessToken(req.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid refresh token"})
+	}
+
+	return c.JSON(fiber.Map{
+		"access_token": newAccessToken,
+		"expires_in":   900,
+	})
+}
+
+func LogoutHandler(c *fiber.Ctx) error {
+	type Request struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	if req.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Refresh token is required"})
+	}
+
+	err := DeleteRefreshToken(req.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete refresh token"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Logged out successfully"})
+}

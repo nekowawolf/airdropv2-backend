@@ -1,17 +1,17 @@
 package test
 
 import (
+	"github.com/nekowawolf/airdropv2/features/admin"
 	"fmt"
 	"testing"
 
-	"github.com/nekowawolf/airdropv2/module"
 )
 
 func TestInsertAdmin(t *testing.T) {
 	username := "admin"
 	password := ""
 
-	result, err := module.InsertAdmin(username, password)
+	result, err := admin.InsertAdmin(username, password)
 	if err != nil {
 		t.Errorf("Failed to admin notes: %v", err)
 		return
@@ -24,7 +24,7 @@ func TestLoginAdmin(t *testing.T) {
 	username := "admin"
 	password := "admin123"
 
-	success, err := module.LoginAdmin(username, password)
+	success, err := admin.LoginAdmin(username, password)
 	if err != nil {
 		t.Errorf("Login failed: %v", err)
 		return
