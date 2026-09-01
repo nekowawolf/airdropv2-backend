@@ -11,6 +11,7 @@ import (
 	"github.com/nekowawolf/airdropv2/features/creators"
 	"github.com/nekowawolf/airdropv2/features/github"
 	"github.com/nekowawolf/airdropv2/features/github/repo_submission"
+	"github.com/nekowawolf/airdropv2/features/guild"
 	"github.com/nekowawolf/airdropv2/features/link"
 	"github.com/nekowawolf/airdropv2/features/media"
 	"github.com/nekowawolf/airdropv2/features/message"
@@ -47,6 +48,10 @@ func SetupRoutes(app *fiber.App) {
 	// Public crypto community routes
 	api.Get("/cryptocommunity", community.GetAllCryptoCommunityHandler)
 	api.Get("/cryptocommunity/stats", community.GetCryptoCommunityStatsHandler)
+
+	// Public guild routes
+	api.Get("/guild", guild.GetAllGuildHandler)
+	api.Get("/guild/stats", guild.GetGuildStatsHandler)
 
 	// Public AI Tool routes
 	api.Get("/aitools", ai_tools.GetAllAIToolsHandler)
@@ -104,6 +109,12 @@ func SetupRoutes(app *fiber.App) {
 	protected.Post("/cryptocommunity", community.InsertCryptoCommunityHandler)
 	protected.Put("/cryptocommunity/:id", community.UpdateCryptoCommunityByIDHandler)
 	protected.Delete("/cryptocommunity/:id", community.DeleteCryptoCommunityByIDHandler)
+
+	// Protected guild routes
+	protected.Get("/guild/:id", guild.GetGuildByIDHandler)
+	protected.Post("/guild", guild.InsertGuildHandler)
+	protected.Put("/guild/:id", guild.UpdateGuildByIDHandler)
+	protected.Delete("/guild/:id", guild.DeleteGuildByIDHandler)
 
 	// Protected AI Tool routes
 	protected.Get("/aitools/:id", ai_tools.GetAIToolsByIDHandler)
