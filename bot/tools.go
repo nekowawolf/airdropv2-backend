@@ -36,6 +36,9 @@ var projectEndpoints = []ProjectEndpoint{
 	{"aitools", "AI Tools", "/aitools", "🤖"},
 	{"web3tools", "Web3 Tools", "/web3tools", "🌐"},
 	{"githubrepo", "Github Repo", "/githubrepo", "🐙"},
+	{"net", "Net", "/net", "🕸️"},
+	{"creators", "Creators", "/creators", "🎨"},
+	{"guild", "Guild", "/guild", "🛡️"},
 }
 
 func checkAuth(c tele.Context) bool {
@@ -72,7 +75,7 @@ func handleSpeedTest(c tele.Context) error {
 	if err != nil {
 		return c.Send(fmt.Sprintf("❌ Configuration Error: %v", err))
 	}
-	endpoints := []string{"/airdrops", "/profilelink", "/postslink", "/cryptocommunity", "/price", "/portfolio", "/aitools", "/web3tools", "/githubrepo"}
+	endpoints := []string{"/airdrops", "/profilelink", "/postslink", "/cryptocommunity", "/price", "/portfolio", "/aitools", "/web3tools", "/githubrepo", "/net", "/creators", "/guild"}
 
 	results := "⚡ API Speed Test Results\n\n"
 	allNormal := true
@@ -129,7 +132,7 @@ func handleCheckMissingImages(c tele.Context) error {
 	rows = append(rows, menu.Row(btnCancel))
 	
 	menu.Inline(rows...)
-	return c.Edit("🔍 *Check Missing Images*\nPilih project mana yang mau di-scan:", menu, tele.ModeMarkdown)
+	return c.Edit("🔍 *Check Missing Images*\nChoose a project to scan:", menu, tele.ModeMarkdown)
 }
 
 func handleExecuteImageCheck(c tele.Context) error {
@@ -246,7 +249,7 @@ func handleCheckInvalidLink(c tele.Context) error {
 	rows = append(rows, menu.Row(btnCancel))
 	
 	menu.Inline(rows...)
-	return c.Edit("🔗 *Check Invalid Links*\nPilih project mana yang mau di-scan:", menu, tele.ModeMarkdown)
+	return c.Edit("🔗 *Check Invalid Links*\nChoose a project to scan:", menu, tele.ModeMarkdown)
 }
 
 func handleExecuteLinkCheck(c tele.Context) error {
