@@ -14,6 +14,7 @@ type NetSocials struct {
 	Twitter   string `bson:"twitter,omitempty" json:"twitter,omitempty"`
 	Instagram string `bson:"instagram,omitempty" json:"instagram,omitempty"`
 	Discord   string `bson:"discord,omitempty" json:"discord,omitempty"`
+	Github    string `bson:"github,omitempty" json:"github,omitempty"`
 	Youtube   string `bson:"youtube,omitempty" json:"youtube,omitempty"`
 }
 
