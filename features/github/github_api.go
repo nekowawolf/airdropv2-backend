@@ -185,65 +185,76 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []M
 		return nil, nil, err
 	}
 
-	type ContentItem struct {
-		Name        string `json:"name"`
-		Type        string `json:"type"`
-		DownloadURL string `json:"download_url"`
-		Path        string `json:"path"`
+	defaultBranch := "main"
+	if branch, ok := repoData["default_branch"].(string); ok {
+		defaultBranch = branch
 	}
 
-	var rootContents []ContentItem
-	var githubContents []ContentItem
-	var githubReadmesContents []ContentItem
+	treeUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/git/trees/%s?recursive=1", owner, repoName, defaultBranch)
+	treeBody, err := doGithubRequest(treeUrl)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	var wg sync.WaitGroup
-	wg.Add(3)
+	type TreeItem struct {
+		Path string `json:"path"`
+		Type string `json:"type"`
+	}
 
-	go func() {
-		defer wg.Done()
-		rootUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents", owner, repoName)
-		body, err := doGithubRequest(rootUrl)
-		if err == nil {
-			json.Unmarshal(body, &rootContents)
-		}
-	}()
+	var treeResponse struct {
+		Tree []TreeItem `json:"tree"`
+	}
 
-	go func() {
-		defer wg.Done()
-		githubUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/.github", owner, repoName)
-		body, err := doGithubRequest(githubUrl)
-		if err == nil {
-			json.Unmarshal(body, &githubContents)
-		}
-	}()
+	if err := json.Unmarshal(treeBody, &treeResponse); err != nil {
+		return nil, nil, err
+	}
 
-	go func() {
-		defer wg.Done()
-		readmesUrl := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/.github/readmes", owner, repoName)
-		body, err := doGithubRequest(readmesUrl)
-		if err == nil {
-			json.Unmarshal(body, &githubReadmesContents)
-		}
-	}()
-
-	wg.Wait()
-
-	allContents := append(rootContents, githubContents...)
-	allContents = append(allContents, githubReadmesContents...)
+	type ContentItem struct {
+		Name        string
+		Type        string
+		DownloadURL string
+		Path        string
+	}
 
 	var filesToDownload []ContentItem
-	for _, item := range allContents {
-		if item.Type == "file" && item.DownloadURL != "" {
-			lowerName := strings.ToLower(item.Name)
-			if strings.HasSuffix(lowerName, ".md") || strings.HasSuffix(lowerName, ".mdx") || lowerName == "license" || lowerName == "code_of_conduct" {
-				filesToDownload = append(filesToDownload, item)
+	uniqueFilesMap := make(map[string]ContentItem)
+
+	for _, item := range treeResponse.Tree {
+		if item.Type == "blob" {
+			lowerPath := strings.ToLower(item.Path)
+			
+			if strings.Contains(lowerPath, "node_modules/") || strings.Contains(lowerPath, "vendor/") || 
+				strings.Contains(lowerPath, "dist/") || strings.Contains(lowerPath, ".next/") || 
+				strings.Contains(lowerPath, "build/") || strings.Contains(lowerPath, ".cache/") {
+				continue
+			}
+
+			parts := strings.Split(item.Path, "/")
+			name := parts[len(parts)-1]
+			lowerName := strings.ToLower(name)
+			
+			inRootOrGithub := len(parts) == 1 || parts[0] == ".github"
+			
+			isImportantFile := strings.HasPrefix(lowerName, "readme") || lowerName == "license" || lowerName == "code_of_conduct"
+			
+			if (inRootOrGithub && (strings.HasSuffix(lowerName, ".md") || strings.HasSuffix(lowerName, ".mdx"))) || isImportantFile {
+				downloadURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", owner, repoName, defaultBranch, item.Path)
+				
+				existing, exists := uniqueFilesMap[lowerName]
+				if !exists || len(item.Path) < len(existing.Path) {
+					uniqueFilesMap[lowerName] = ContentItem{
+						Name:        name,
+						Type:        "file",
+						DownloadURL: downloadURL,
+						Path:        item.Path,
+					}
+				}
 			}
 		}
 	}
 
-	defaultBranch := "main"
-	if branch, ok := repoData["default_branch"].(string); ok {
-		defaultBranch = branch
+	for _, item := range uniqueFilesMap {
+		filesToDownload = append(filesToDownload, item)
 	}
 
 	var downloadedMdFiles []MdFile
@@ -319,18 +330,7 @@ func FetchGithubRepoDetails(owner, repoName string) (map[string]interface{}, []M
 
 	downloadWg.Wait()
 
-	uniqueFilesMap := make(map[string]MdFile)
-	for _, f := range downloadedMdFiles {
-		lowerName := strings.ToLower(f.Name)
-		if _, exists := uniqueFilesMap[lowerName]; !exists {
-			uniqueFilesMap[lowerName] = f
-		}
-	}
-
-	var finalMdFiles []MdFile
-	for _, f := range uniqueFilesMap {
-		finalMdFiles = append(finalMdFiles, f)
-	}
+	finalMdFiles := downloadedMdFiles
 
 	getPriority := func(name string) int {
 		lower := strings.ToLower(name)
